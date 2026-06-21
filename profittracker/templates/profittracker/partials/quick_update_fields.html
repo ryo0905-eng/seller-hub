@@ -1,0 +1,23 @@
+<div class="quick-grid">
+    <label class="quick-field">
+        <span>ステータス</span>
+        {{ form.status }}
+    </label>
+    <label class="quick-field">
+        <span>実売USD</span>
+        {{ form.actual_sale_price_usd }}
+    </label>
+    <label class="quick-field">
+        <span>売却日</span>
+        {{ form.sold_date }}
+    </label>
+    <label class="quick-field">
+        <span>発送日</span>
+        {{ form.shipped_date }}
+    </label>
+    <label class="quick-field tracking">
+        <span>追跡番号</span>
+        {{ form.tracking_number }}
+    </label>
+    <button class="btn btn-sm btn-dark-soft quick-submit" type="submit">保存</button>
+</div>

@@ -339,7 +339,7 @@ main.container {
 }
 
 .quick-update-form {
-    min-width: 320px;
+    min-width: 420px;
 }
 
 .quick-update-form.mobile {
@@ -348,12 +348,53 @@ main.container {
 
 .quick-grid {
     display: grid;
-    gap: 6px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.quick-grid .btn {
-    grid-column: span 1;
+.quick-field {
+    display: block;
+    margin: 0;
+}
+
+.quick-field span {
+    color: var(--app-muted);
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.quick-field.tracking {
+    grid-column: span 2;
+}
+
+.quick-submit {
+    align-self: end;
+    min-height: 31px;
+}
+
+.quick-update-form .form-control-sm,
+.quick-update-form .form-select-sm {
+    font-size: 0.78rem;
+    min-height: 31px;
+    padding-bottom: 0.22rem;
+    padding-top: 0.22rem;
+}
+
+@media (max-width: 575.98px) {
+    .quick-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .quick-field.tracking {
+        grid-column: span 2;
+    }
+
+    .quick-submit {
+        grid-column: span 2;
+    }
 }
 
 .status-badge {

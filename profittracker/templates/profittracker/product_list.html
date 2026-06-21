@@ -138,14 +138,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="next" value="{{ request.get_full_path }}">
                             {% with form=quick_update_forms|get_item:product.pk %}
-                                <div class="quick-grid">
-                                    {{ form.status }}
-                                    {{ form.actual_sale_price_usd }}
-                                    {{ form.sold_date }}
-                                    {{ form.shipped_date }}
-                                    {{ form.tracking_number }}
-                                    <button class="btn btn-sm btn-dark-soft" type="submit">保存</button>
-                                </div>
+                                {% include "profittracker/partials/quick_update_fields.html" with form=form %}
                             {% endwith %}
                         </form>
                     </td>
@@ -202,14 +195,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.get_full_path }}">
                         {% with form=quick_update_forms|get_item:product.pk %}
-                            <div class="quick-grid">
-                                {{ form.status }}
-                                {{ form.actual_sale_price_usd }}
-                                {{ form.sold_date }}
-                                {{ form.shipped_date }}
-                                {{ form.tracking_number }}
-                                <button class="btn btn-sm btn-dark-soft" type="submit">保存</button>
-                            </div>
+                            {% include "profittracker/partials/quick_update_fields.html" with form=form %}
                         {% endwith %}
                     </form>
                     <div class="d-flex gap-2 mt-3">
