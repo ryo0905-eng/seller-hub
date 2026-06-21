@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+from io import BytesIO
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -186,6 +187,100 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "category-profit-labels")
         self.assertContains(response, "Loss Item")
         self.assertContains(response, "Long Inventory")
+
+    def test_product_detail_renders_for_owner(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        product = Product.objects.create(
+            owner=user,
+            title="Detail Item",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("product_detail", args=[product.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Detail Item")
+        self.assertContains(response, "基本情報")
+
+    def test_quick_update_changes_sales_fields(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        product = Product.objects.create(
+            owner=user,
+            title="Quick Item",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("product_quick_update", args=[product.pk]),
+            {
+                "status": Product.Status.SOLD,
+                "actual_sale_price_usd": "30.00",
+                "sold_date": "2026-06-20",
+                "shipped_date": "",
+                "tracking_number": "TRACK123",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        product.refresh_from_db()
+        self.assertEqual(product.status, Product.Status.SOLD)
+        self.assertEqual(product.actual_sale_price_usd, Decimal("30.00"))
+        self.assertEqual(product.sold_date, date(2026, 6, 20))
+        self.assertEqual(product.tracking_number, "TRACK123")
+
+    def test_csv_export_and_import(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        Product.objects.create(
+            owner=user,
+            title="Export Item",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+        )
+        self.client.force_login(user)
+
+        export_response = self.client.get(reverse("product_export"))
+        self.assertEqual(export_response.status_code, 200)
+        self.assertIn("products.csv", export_response["Content-Disposition"])
+
+        csv_content = b"title,purchase_price_jpy,expected_sale_price_usd,shipping_cost_jpy,exchange_rate\nImported Item,2000,40.00,700,150.00\n"
+        import_response = self.client.post(
+            reverse("product_import"),
+            {"csv_file": BytesIO(csv_content)},
+            format="multipart",
+        )
+
+        self.assertEqual(import_response.status_code, 302)
+        self.assertTrue(Product.objects.filter(owner=user, title="Imported Item").exists())
+
+    def test_analytics_period_filter_renders(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        Product.objects.create(
+            owner=user,
+            title="Filtered Sale",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+            sold_date=date(2026, 6, 20),
+            actual_sale_price_usd=Decimal("30.00"),
+            actual_exchange_rate=Decimal("150.00"),
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("analytics"), {"period": "custom", "start": "2026-06-01", "end": "2026-06-30"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "2026-06")
 
     @patch("profittracker.views.urlopen", return_value=FakeExchangeRateResponse())
     def test_exchange_rate_api_returns_usd_jpy_rate(self, mocked_urlopen):

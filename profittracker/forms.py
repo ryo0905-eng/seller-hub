@@ -53,3 +53,37 @@ class ProductForm(forms.ModelForm):
         for field in self.fields.values():
             css = "form-select" if isinstance(field.widget, forms.Select) else "form-control"
             field.widget.attrs["class"] = css
+
+
+class ProductQuickUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = [
+            "status",
+            "actual_sale_price_usd",
+            "sold_date",
+            "shipped_date",
+            "tracking_number",
+        ]
+        widgets = {
+            "sold_date": forms.DateInput(attrs={"type": "date"}),
+            "shipped_date": forms.DateInput(attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["actual_sale_price_usd"].widget.attrs["placeholder"] = "実売USD"
+        self.fields["sold_date"].widget.attrs["placeholder"] = "売却日"
+        self.fields["shipped_date"].widget.attrs["placeholder"] = "発送日"
+        self.fields["tracking_number"].widget.attrs["placeholder"] = "追跡番号"
+        for field in self.fields.values():
+            css = "form-select form-select-sm" if isinstance(field.widget, forms.Select) else "form-control form-control-sm"
+            field.widget.attrs["class"] = css
+
+
+class ProductCsvImportForm(forms.Form):
+    csv_file = forms.FileField(label="CSVファイル")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["csv_file"].widget.attrs["class"] = "form-control"

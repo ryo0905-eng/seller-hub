@@ -10,7 +10,11 @@
         <h1 class="h2 fw-bold mb-2">商品一覧</h1>
         <p class="text-muted mb-0">想定利益、実利益、在庫日数、売れるまでの日数をひと目で管理します。</p>
     </div>
-    <a class="btn btn-primary-action" href="{% url 'product_create' %}">商品を登録</a>
+    <div class="d-flex flex-column flex-sm-row gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'product_import' %}">CSV取込</a>
+        <a class="btn btn-outline-secondary" href="{% url 'product_export' %}">CSV出力</a>
+        <a class="btn btn-primary-action" href="{% url 'product_create' %}">商品を登録</a>
+    </div>
 </div>
 
 <div class="row g-3 mb-4">
@@ -87,6 +91,7 @@
                 <th class="text-end">想定利益</th>
                 <th class="text-end">実利益</th>
                 <th class="text-end">ROI</th>
+                <th>クイック更新</th>
                 <th></th>
             </tr>
             </thead>
@@ -94,9 +99,18 @@
             {% for product in products %}
                 <tr>
                     <td>
-                        <div class="fw-semibold">{{ product.title }}</div>
-                        <div class="text-muted small">
-                            {% if product.sku %}{{ product.sku }} / {% endif %}{{ product.brand }} {{ product.category }} {{ product.source }}
+                        <div class="product-cell">
+                            {% if product.image_url %}
+                                <img class="product-thumb" src="{{ product.image_url }}" alt="{{ product.title }}">
+                            {% else %}
+                                <div class="product-thumb placeholder">No</div>
+                            {% endif %}
+                            <div>
+                                <a class="fw-semibold product-title-link" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
+                                <div class="text-muted small">
+                                    {% if product.sku %}{{ product.sku }} / {% endif %}{{ product.brand }} {{ product.category }} {{ product.source }}
+                                </div>
+                            </div>
                         </div>
                     </td>
                     <td><span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span></td>
@@ -119,7 +133,24 @@
                         {% endif %}
                     </td>
                     <td class="text-end">{{ product.roi }}%</td>
+                    <td>
+                        <form class="quick-update-form" method="post" action="{% url 'product_quick_update' product.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            {% with form=quick_update_forms|get_item:product.pk %}
+                                <div class="quick-grid">
+                                    {{ form.status }}
+                                    {{ form.actual_sale_price_usd }}
+                                    {{ form.sold_date }}
+                                    {{ form.shipped_date }}
+                                    {{ form.tracking_number }}
+                                    <button class="btn btn-sm btn-dark-soft" type="submit">保存</button>
+                                </div>
+                            {% endwith %}
+                        </form>
+                    </td>
                     <td class="text-end text-nowrap">
+                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'product_detail' product.pk %}">詳細</a>
                         <a class="btn btn-sm btn-outline-dark" href="{% url 'product_update' product.pk %}">編集</a>
                         <a class="btn btn-sm btn-outline-danger" href="{% url 'product_delete' product.pk %}">削除</a>
                     </td>
@@ -135,7 +166,16 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between gap-2">
                         <div>
-                            <h2 class="h5 fw-bold mb-1">{{ product.title }}</h2>
+                            <div class="product-cell mb-2">
+                                {% if product.image_url %}
+                                    <img class="product-thumb" src="{{ product.image_url }}" alt="{{ product.title }}">
+                                {% else %}
+                                    <div class="product-thumb placeholder">No</div>
+                                {% endif %}
+                                <div>
+                                    <h2 class="h5 fw-bold mb-1">{{ product.title }}</h2>
+                                </div>
+                            </div>
                             <div class="text-muted small">
                                 {% if product.sku %}{{ product.sku }} / {% endif %}{{ product.brand }} {{ product.category }}
                             </div>
@@ -158,7 +198,22 @@
                         <div class="col-6">ROI: {{ product.roi }}%</div>
                         <div class="col-6">差額: {% if product.profit_gap_jpy != None %}{{ product.profit_gap_jpy|floatformat:0 }}円{% else %}-{% endif %}</div>
                     </div>
+                    <form class="quick-update-form mobile mt-3" method="post" action="{% url 'product_quick_update' product.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        {% with form=quick_update_forms|get_item:product.pk %}
+                            <div class="quick-grid">
+                                {{ form.status }}
+                                {{ form.actual_sale_price_usd }}
+                                {{ form.sold_date }}
+                                {{ form.shipped_date }}
+                                {{ form.tracking_number }}
+                                <button class="btn btn-sm btn-dark-soft" type="submit">保存</button>
+                            </div>
+                        {% endwith %}
+                    </form>
                     <div class="d-flex gap-2 mt-3">
+                        <a class="btn btn-sm btn-outline-secondary flex-fill" href="{% url 'product_detail' product.pk %}">詳細</a>
                         <a class="btn btn-sm btn-outline-dark flex-fill" href="{% url 'product_update' product.pk %}">編集</a>
                         <a class="btn btn-sm btn-outline-danger flex-fill" href="{% url 'product_delete' product.pk %}">削除</a>
                     </div>

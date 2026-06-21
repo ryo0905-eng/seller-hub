@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}CSV取込 - eBay Profit Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="page-hero compact mb-3">
+            <div class="eyebrow">CSV Import</div>
+            <h1 class="h3 fw-bold mb-2">CSV取込</h1>
+            <p class="text-muted mb-0">CSVから商品をまとめて登録します。まずはCSV出力したファイルを雛形にするのがおすすめです。</p>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="card app-card">
+            {% csrf_token %}
+            <div class="card-body">
+                {{ form.non_field_errors }}
+                <label class="form-label" for="{{ form.csv_file.id_for_label }}">{{ form.csv_file.label }}</label>
+                {{ form.csv_file }}
+                {% for error in form.csv_file.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+                <div class="form-text mt-2">
+                    必須ヘッダー: title, purchase_price_jpy, expected_sale_price_usd, shipping_cost_jpy, exchange_rate
+                </div>
+            </div>
+            <div class="card-footer form-actions d-flex gap-2 justify-content-end">
+                <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">戻る</a>
+                <button class="btn btn-primary-action" type="submit">取り込む</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.title }} - eBay Profit Tracker{% endblock %}
+
+{% block content %}
+<div class="page-hero compact d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center mb-3">
+    <div class="product-cell">
+        {% if product.image_url %}
+            <img class="product-thumb large" src="{{ product.image_url }}" alt="{{ product.title }}">
+        {% else %}
+            <div class="product-thumb large placeholder">No Image</div>
+        {% endif %}
+        <div>
+            <div class="eyebrow">Product Detail</div>
+            <h1 class="h3 fw-bold mb-1">{{ product.title }}</h1>
+            <p class="text-muted mb-0">{% if product.sku %}{{ product.sku }} / {% endif %}{{ product.brand }} {{ product.category }}</p>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">一覧へ</a>
+        <a class="btn btn-primary-action" href="{% url 'product_update' product.pk %}">編集</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="metric">
+            <span>想定利益</span>
+            <strong class="{% if product.expected_profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">{{ product.expected_profit_jpy|floatformat:0 }}円</strong>
+            <small>{{ product.profit_rate }}%</small>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="metric">
+            <span>実利益</span>
+            <strong class="{% if product.actual_profit_jpy != None and product.actual_profit_jpy < 0 %}text-danger{% elif product.actual_profit_jpy != None %}text-success{% endif %}">
+                {% if product.actual_profit_jpy != None %}{{ product.actual_profit_jpy|floatformat:0 }}円{% else %}-{% endif %}
+            </strong>
+            <small>{% if product.actual_profit_rate != None %}{{ product.actual_profit_rate }}%{% else %}Actual{% endif %}</small>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="metric">
+            <span>ROI</span>
+            <strong>{{ product.roi }}%</strong>
+            <small>Return</small>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="metric">
+            <span>在庫日数</span>
+            <strong>{% if product.inventory_age_days != None %}{{ product.inventory_age_days }}日{% else %}-{% endif %}</strong>
+            <small>Inventory age</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-xl-6">
+        <div class="analytics-panel">
+            <h2 class="h5 fw-bold mb-3">基本情報</h2>
+            <dl class="detail-grid">
+                <dt>ステータス</dt><dd><span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span></dd>
+                <dt>状態</dt><dd>{{ product.get_condition_display }}</dd>
+                <dt>数量</dt><dd>{{ product.quantity }}</dd>
+                <dt>仕入先</dt><dd>{{ product.source|default:"-" }}</dd>
+                <dt>販売先国</dt><dd>{{ product.buyer_country|default:"-" }}</dd>
+                <dt>追跡番号</dt><dd>{{ product.tracking_number|default:"-" }}</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-12 col-xl-6">
+        <div class="analytics-panel">
+            <h2 class="h5 fw-bold mb-3">日付</h2>
+            <dl class="detail-grid">
+                <dt>仕入れ日</dt><dd>{{ product.purchase_date|default:"-" }}</dd>
+                <dt>出品日</dt><dd>{{ product.listed_date|default:"-" }}</dd>
+                <dt>売却日</dt><dd>{{ product.sold_date|default:"-" }}</dd>
+                <dt>発送日</dt><dd>{{ product.shipped_date|default:"-" }}</dd>
+                <dt>販売日数</dt><dd>{% if product.days_to_sell != None %}{{ product.days_to_sell }}日{% else %}-{% endif %}</dd>
+                <dt>保有日数</dt><dd>{% if product.holding_days != None %}{{ product.holding_days }}日{% else %}-{% endif %}</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-12 col-xl-6">
+        <div class="analytics-panel">
+            <h2 class="h5 fw-bold mb-3">想定</h2>
+            <dl class="detail-grid">
+                <dt>仕入価格</dt><dd>{{ product.purchase_price_jpy|floatformat:0 }}円</dd>
+                <dt>想定売価</dt><dd>${{ product.expected_sale_price_usd }} / {{ product.sale_price_jpy|floatformat:0 }}円</dd>
+                <dt>送料</dt><dd>{{ product.shipping_cost_jpy|floatformat:0 }}円</dd>
+                <dt>eBay手数料</dt><dd>{{ product.ebay_fee_jpy|floatformat:0 }}円 ({{ product.ebay_fee_rate }}%)</dd>
+                <dt>その他コスト</dt><dd>{{ product.other_cost_jpy|floatformat:0 }}円</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-12 col-xl-6">
+        <div class="analytics-panel">
+            <h2 class="h5 fw-bold mb-3">実績</h2>
+            <dl class="detail-grid">
+                <dt>実売価格</dt><dd>{% if product.actual_sale_price_usd %}${{ product.actual_sale_price_usd }} / {{ product.actual_sale_price_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
+                <dt>実為替</dt><dd>{{ product.actual_exchange_rate|default:"-" }}</dd>
+                <dt>実送料</dt><dd>{% if product.actual_shipping_cost_jpy != None %}{{ product.actual_shipping_cost_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
+                <dt>実eBay手数料</dt><dd>{% if product.actual_fee_for_profit_jpy != None %}{{ product.actual_fee_for_profit_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
+                <dt>想定との差</dt><dd>{% if product.profit_gap_jpy != None %}{{ product.profit_gap_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="analytics-panel">
+            <h2 class="h5 fw-bold mb-3">リンク・メモ</h2>
+            <dl class="detail-grid">
+                <dt>eBay URL</dt><dd>{% if product.listing_url %}<a href="{{ product.listing_url }}" target="_blank" rel="noopener">開く</a>{% else %}-{% endif %}</dd>
+                <dt>仕入れ元URL</dt><dd>{% if product.purchase_url %}<a href="{{ product.purchase_url }}" target="_blank" rel="noopener">開く</a>{% else %}-{% endif %}</dd>
+                <dt>メモ</dt><dd>{{ product.memo|linebreaksbr|default:"-" }}</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+{% endblock %}
