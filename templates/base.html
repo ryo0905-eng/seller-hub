@@ -12,8 +12,13 @@
 <nav class="navbar navbar-expand-lg app-navbar">
     <div class="container">
         <a class="navbar-brand fw-bold" href="{% url 'product_list' %}">
-            <span class="brand-mark">¥</span>
-            eBay Profit Tracker
+            <span class="brand-mark" aria-hidden="true">
+                <span class="brand-bars">
+                    <i></i><i></i><i></i>
+                </span>
+                <span class="brand-line"></span>
+            </span>
+            <span class="brand-name">eBay Profit Tracker</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>

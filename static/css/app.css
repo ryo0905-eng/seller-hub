@@ -45,20 +45,86 @@ body {
 .navbar-brand {
     align-items: center;
     display: inline-flex;
-    gap: 10px;
+    gap: 12px;
     letter-spacing: 0;
 }
 
 .brand-mark {
     align-items: center;
-    background: var(--app-accent);
+    background:
+        radial-gradient(circle at 74% 22%, rgba(245, 179, 1, 0.42), transparent 28%),
+        linear-gradient(135deg, #111827 0%, #252a34 100%);
     border-radius: 8px;
-    color: #111;
+    box-shadow: 0 12px 24px rgba(17, 24, 39, 0.18);
     display: inline-flex;
-    font-size: 0.95rem;
-    height: 30px;
+    height: 34px;
     justify-content: center;
+    overflow: hidden;
+    position: relative;
     width: 30px;
+}
+
+.brand-mark::after {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent);
+    content: "";
+    inset: 1px;
+    position: absolute;
+}
+
+.brand-bars {
+    align-items: end;
+    bottom: 9px;
+    display: flex;
+    gap: 3px;
+    left: 7px;
+    position: absolute;
+    z-index: 1;
+}
+
+.brand-bars i {
+    background: rgba(255, 255, 255, 0.78);
+    border-radius: 999px;
+    display: block;
+    width: 3px;
+}
+
+.brand-bars i:nth-child(1) {
+    height: 7px;
+}
+
+.brand-bars i:nth-child(2) {
+    height: 11px;
+}
+
+.brand-bars i:nth-child(3) {
+    height: 16px;
+}
+
+.brand-line {
+    border-right: 3px solid var(--app-accent);
+    border-top: 3px solid var(--app-accent);
+    height: 13px;
+    position: absolute;
+    right: 8px;
+    top: 9px;
+    transform: rotate(35deg);
+    width: 13px;
+    z-index: 2;
+}
+
+.brand-line::after {
+    background: var(--app-accent);
+    border-radius: 999px;
+    content: "";
+    height: 3px;
+    position: absolute;
+    right: -4px;
+    top: -3px;
+    width: 7px;
+}
+
+.brand-name {
+    font-weight: 800;
 }
 
 .navbar-toggler {
