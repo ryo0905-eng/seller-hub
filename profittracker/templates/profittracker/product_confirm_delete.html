@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}商品削除 - eBay Profit Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5">
+        <div class="card app-card">
+            <div class="card-body p-4">
+                <h1 class="h4 fw-bold">商品を削除しますか？</h1>
+                <p class="mb-1">「{{ object.title }}」を削除します。</p>
+                <p class="text-muted small">この操作は元に戻せません。</p>
+                <form method="post" class="d-flex gap-2 justify-content-end">
+                    {% csrf_token %}
+                    <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">キャンセル</a>
+                    <button class="btn btn-danger" type="submit">削除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

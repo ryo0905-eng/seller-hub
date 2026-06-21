@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}実績分析 - eBay Profit Tracker{% endblock %}
+
+{% block content %}
+<div class="page-hero d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center mb-4">
+    <div>
+        <div class="eyebrow">Analytics</div>
+        <h1 class="h2 fw-bold mb-2">実績分析</h1>
+        <p class="text-muted mb-0">実利益、ROI、販売日数、在庫の動きを見て、次の仕入れ判断につなげます。</p>
+    </div>
+    <a class="btn btn-primary-action" href="{% url 'product_create' %}">商品を登録</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="metric">
+            <span>実利益合計</span>
+            <strong class="{% if total_actual_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ total_actual_profit|floatformat:0 }}円</strong>
+            <small>Actual profit</small>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="metric">
+            <span>平均ROI</span>
+            <strong>{% if average_roi != None %}{{ average_roi }}%{% else %}-{% endif %}</strong>
+            <small>Return on investment</small>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="metric">
+            <span>平均販売日数</span>
+            <strong>{% if average_days_to_sell != None %}{{ average_days_to_sell }}日{% else %}-{% endif %}</strong>
+            <small>Sell-through</small>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="metric">
+            <span>在庫金額</span>
+            <strong>{{ inventory_value|floatformat:0 }}円</strong>
+            <small>Inventory value</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-xl-8">
+        <div class="analytics-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">月別 実利益</h2>
+                    <p class="text-muted small mb-0">売却日ベースで実利益を集計します。</p>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="monthlyProfitChart"></canvas>
+                {% if not monthly_profit_labels %}
+                    <div class="chart-empty">売却日と実売価格を入力すると表示されます。</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <div class="analytics-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">ステータス別 商品数</h2>
+                    <p class="text-muted small mb-0">現在の在庫・販売状況です。</p>
+                </div>
+            </div>
+            <div class="chart-wrap compact">
+                <canvas id="statusCountChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-xl-7">
+        <div class="analytics-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">カテゴリ別 実利益</h2>
+                    <p class="text-muted small mb-0">利益が出ているカテゴリを確認できます。</p>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="categoryProfitChart"></canvas>
+                {% if not category_profit_labels %}
+                    <div class="chart-empty">実績入力済みの商品が増えると表示されます。</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-5">
+        <div class="analytics-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">仕入先別パフォーマンス</h2>
+                    <p class="text-muted small mb-0">実利益の高い仕入先順です。</p>
+                </div>
+            </div>
+            {% if source_profit_rows %}
+                <div class="table-responsive">
+                    <table class="table app-table compact-table mb-0">
+                        <thead>
+                        <tr>
+                            <th>仕入先</th>
+                            <th class="text-end">実利益</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for source, profit in source_profit_rows %}
+                            <tr>
+                                <td class="fw-semibold">{{ source }}</td>
+                                <td class="text-end fw-bold {% if profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ profit|floatformat:0 }}円</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="mini-empty">実績入力済みの商品が増えると表示されます。</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-xl-6">
+        <div class="analytics-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">赤字商品</h2>
+                    <p class="text-muted small mb-0">実利益がマイナスの商品です。</p>
+                </div>
+            </div>
+            {% if red_products %}
+                <div class="vstack gap-2">
+                    {% for product in red_products %}
+                        <a class="insight-row" href="{% url 'product_update' product.pk %}">
+                            <span>
+                                <strong>{{ product.title }}</strong>
+                                <small>{{ product.category|default:"未分類" }} / {{ product.get_status_display }}</small>
+                            </span>
+                            <b class="text-danger">{{ product.actual_profit_jpy|floatformat:0 }}円</b>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="mini-empty">赤字の商品はありません。</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-12 col-xl-6">
+        <div class="analytics-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">長期在庫</h2>
+                    <p class="text-muted small mb-0">未売却商品の在庫日数が長い順です。</p>
+                </div>
+            </div>
+            {% if long_inventory_products %}
+                <div class="vstack gap-2">
+                    {% for product in long_inventory_products %}
+                        <a class="insight-row" href="{% url 'product_update' product.pk %}">
+                            <span>
+                                <strong>{{ product.title }}</strong>
+                                <small>{{ product.category|default:"未分類" }} / {{ product.get_status_display }}</small>
+                            </span>
+                            <b>{{ product.inventory_age_days }}日</b>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="mini-empty">仕入れ日が入った未売却商品が表示されます。</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{{ monthly_profit_labels|json_script:"monthly-profit-labels" }}
+{{ monthly_profit_values|json_script:"monthly-profit-values" }}
+{{ category_profit_labels|json_script:"category-profit-labels" }}
+{{ category_profit_values|json_script:"category-profit-values" }}
+{{ status_count_labels|json_script:"status-count-labels" }}
+{{ status_count_values|json_script:"status-count-values" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/analytics.js' %}"></script>
+{% endblock %}

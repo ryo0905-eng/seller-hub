@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}商品{% if object %}編集{% else %}登録{% endif %} - eBay Profit Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-9">
+        <div class="page-hero compact d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <div class="eyebrow">Product Editor</div>
+                <h1 class="h3 fw-bold mb-0">商品{% if object %}編集{% else %}登録{% endif %}</h1>
+                <p class="text-muted mb-0 mt-2">よく使う項目だけ先に入力し、実績や発送情報は必要な時に開けます。</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">戻る</a>
+        </div>
+        <form method="post" class="card app-card">
+            {% csrf_token %}
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <div class="form-section primary-section">
+                    <div class="section-heading">
+                        <div>
+                            <div class="eyebrow">Required basics</div>
+                            <h2 class="h5 fw-bold mb-1">基本登録</h2>
+                            <p class="text-muted small mb-0">まずはこの欄だけで商品を登録できます。</p>
+                        </div>
+                    </div>
+                    <div class="row g-3 compact-form-grid">
+                        {% include "profittracker/partials/form_field.html" with field=form.sku %}
+                        {% include "profittracker/partials/form_field.html" with field=form.title wide=True %}
+                        {% include "profittracker/partials/form_field.html" with field=form.brand %}
+                        {% include "profittracker/partials/form_field.html" with field=form.category %}
+                        {% include "profittracker/partials/form_field.html" with field=form.source %}
+                        {% include "profittracker/partials/form_field.html" with field=form.status %}
+                        {% include "profittracker/partials/form_field.html" with field=form.purchase_price_jpy %}
+                        {% include "profittracker/partials/form_field.html" with field=form.expected_sale_price_usd %}
+                        {% include "profittracker/partials/form_field.html" with field=form.shipping_cost_jpy %}
+                        {% include "profittracker/partials/exchange_rate_field.html" with field=form.exchange_rate %}
+                        {% include "profittracker/partials/form_field.html" with field=form.ebay_fee_rate %}
+                        {% include "profittracker/partials/form_field.html" with field=form.memo wide=True %}
+                    </div>
+                </div>
+
+                <div class="accordion compact-accordion" id="productDetailAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePurchase" aria-expanded="false" aria-controls="collapsePurchase">
+                                仕入れ・商品詳細
+                            </button>
+                        </h2>
+                        <div id="collapsePurchase" class="accordion-collapse collapse" data-bs-parent="#productDetailAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3 compact-form-grid">
+                                    {% include "profittracker/partials/form_field.html" with field=form.condition %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.quantity %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.purchase_date %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.purchase_shipping_jpy %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.other_cost_jpy %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.purchase_url wide=True %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.image_url wide=True %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSales" aria-expanded="false" aria-controls="collapseSales">
+                                出品・販売実績
+                            </button>
+                        </h2>
+                        <div id="collapseSales" class="accordion-collapse collapse" data-bs-parent="#productDetailAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3 compact-form-grid">
+                                    {% include "profittracker/partials/form_field.html" with field=form.listed_date %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.sold_date %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.actual_sale_price_usd %}
+                                    {% include "profittracker/partials/exchange_rate_field.html" with field=form.actual_exchange_rate note="実際の入金・換金レートが分かる場合はそちらを優先してください。" %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.actual_ebay_fee_jpy %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.listing_url wide=True %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.buyer_country %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseShipping" aria-expanded="false" aria-controls="collapseShipping">
+                                発送情報
+                            </button>
+                        </h2>
+                        <div id="collapseShipping" class="accordion-collapse collapse" data-bs-parent="#productDetailAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3 compact-form-grid">
+                                    {% include "profittracker/partials/form_field.html" with field=form.shipped_date %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.actual_shipping_cost_jpy %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.tracking_number wide=True %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer form-actions d-flex flex-column flex-sm-row gap-2 justify-content-end">
+                <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">キャンセル</a>
+                <button class="btn btn-primary-action" type="submit">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/exchange_rate.js' %}"></script>
+{% endblock %}
