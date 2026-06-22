@@ -74,3 +74,64 @@ Pythonは `.python-version` で `3.12.8` に固定しています。Renderの環
 ```bash
 python manage.py createsuperuser
 ```
+
+### Render Shellでのユーザー管理
+
+管理ユーザーを追加する場合:
+
+```bash
+python manage.py createsuperuser
+```
+
+既存ユーザーのパスワードを変更する場合:
+
+```bash
+python manage.py changepassword <username>
+```
+
+例:
+
+```bash
+python manage.py changepassword admin
+```
+
+ユーザー一覧を確認する場合:
+
+```bash
+python manage.py shell
+```
+
+```python
+from django.contrib.auth import get_user_model
+User = get_user_model()
+for user in User.objects.all():
+    print(user.username, user.email, user.is_staff, user.is_superuser)
+```
+
+Shellを終了する場合:
+
+```python
+exit()
+```
+
+### Render PostgreSQLの確認
+
+PostgreSQLを使っているか確認する場合:
+
+```bash
+python manage.py shell
+```
+
+```python
+from django.conf import settings
+settings.DATABASES["default"]["ENGINE"]
+```
+
+`django.db.backends.postgresql` と表示されればPostgreSQLに接続しています。
+
+商品データ件数を確認する場合:
+
+```python
+from profittracker.models import Product
+Product.objects.count()
+```
