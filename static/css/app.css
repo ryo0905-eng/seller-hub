@@ -449,9 +449,9 @@ main.container {
     border-radius: 8px;
     box-shadow: var(--app-shadow-soft);
     display: grid;
-    gap: 18px;
-    grid-template-columns: minmax(0, 1fr) 330px;
-    padding: 18px;
+    gap: 14px;
+    grid-template-columns: minmax(0, 1fr) 230px;
+    padding: 14px;
 }
 
 .decision-card.decision-success {
@@ -473,24 +473,30 @@ main.container {
 
 .decision-product {
     align-items: flex-start;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+}
+
+.decision-product .product-thumb.large {
+    height: 58px;
+    width: 58px;
 }
 
 .decision-summary {
     display: grid;
-    gap: 10px;
+    gap: 8px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .summary-tile,
 .price-sim,
-.actual-box {
+.actual-box,
+.actual-strip {
     background: #f9fafb;
     border: 1px solid #eef1f5;
     border-radius: 8px;
     min-width: 0;
-    padding: 12px;
+    padding: 10px;
 }
 
 .summary-tile.highlight {
@@ -500,37 +506,40 @@ main.container {
 
 .summary-tile span,
 .price-sim span,
-.actual-box span {
+.actual-box span,
+.actual-strip span {
     color: var(--app-muted);
     display: block;
     font-size: 0.72rem;
     font-weight: 800;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
 }
 
 .summary-tile strong,
 .price-sim strong,
-.actual-box strong {
+.actual-box strong,
+.actual-strip b {
     color: var(--app-text);
     display: block;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 850;
     line-height: 1.15;
 }
 
 .summary-tile small,
 .price-sim small,
-.actual-box small {
+.actual-box small,
+.actual-strip small {
     color: #7b8492;
     display: block;
     font-size: 0.74rem;
     font-weight: 700;
-    margin-top: 6px;
+    margin-top: 5px;
 }
 
 .price-sim-grid {
     display: grid;
-    gap: 10px;
+    gap: 8px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -566,31 +575,20 @@ main.container {
     border-left: 1px solid var(--app-border);
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding-left: 18px;
+    gap: 10px;
+    justify-content: space-between;
+    padding-left: 14px;
 }
 
-.actual-box {
+.actual-box,
+.actual-strip {
     background: #fff;
-}
-
-.decision-quick {
-    min-width: 0;
-}
-
-.decision-quick .quick-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.decision-quick .quick-field.tracking,
-.decision-quick .quick-submit {
-    grid-column: span 2;
 }
 
 .decision-actions {
     display: grid;
     gap: 8px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr;
 }
 
 .min-w-0 {

@@ -168,7 +168,9 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "損益分岐売価")
         self.assertContains(response, "10%値下げ")
         self.assertContains(response, "20%値下げ")
-        self.assertContains(response, "維持")
+        self.assertContains(response, "日付未入力")
+        self.assertContains(response, "編集・実績入力")
+        self.assertNotContains(response, "実売USD")
 
     def test_product_list_search_filters_products(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")

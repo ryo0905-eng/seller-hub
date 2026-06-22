@@ -118,6 +118,8 @@ class ProductListView(OwnerQuerysetMixin, ListView):
                 decision = {"label": "赤字確定", "class": "danger", "message": "実績を分析"}
             else:
                 decision = {"label": "売却済み", "class": "success", "message": "実績確認"}
+        elif age is None:
+            decision = {"label": "日付未入力", "class": "warning", "message": "仕入れ日を入力"}
         elif product.expected_profit_jpy < 0:
             decision = {"label": "要見直し", "class": "danger", "message": "現売価で赤字"}
         elif (age is not None and age >= 90 and profit_rate < Decimal("15.0")) or (age is not None and age >= 60 and discount_20["profit_jpy"] < 0):
@@ -165,7 +167,6 @@ class ProductListView(OwnerQuerysetMixin, ListView):
             for product in products
         ]
         context["status_choices"] = Product.Status.choices
-        context["quick_update_forms"] = {product.pk: ProductQuickUpdateForm(instance=product) for product in products}
         context["products"] = products
         context["product_cards"] = product_cards
         context["current_status"] = self.request.GET.get("status", "")

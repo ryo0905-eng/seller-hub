@@ -1,6 +1,4 @@
 {% extends "base.html" %}
-{% load profittracker_extras %}
-
 {% block title %}商品一覧 - eBay Profit Tracker{% endblock %}
 
 {% block content %}
@@ -108,7 +106,7 @@
                         <div class="decision-summary">
                             <div class="summary-tile highlight">
                                 <span>在庫日数</span>
-                                <strong>{% if product.inventory_age_days != None %}{{ product.inventory_age_days }}日{% else %}-{% endif %}</strong>
+                                <strong>{% if product.inventory_age_days != None %}{{ product.inventory_age_days }}日{% else %}未入力{% endif %}</strong>
                                 <small>{{ decision.message }}</small>
                             </div>
                             <div class="summary-tile">
@@ -159,29 +157,22 @@
                     </div>
 
                     <div class="decision-side">
-                        <div class="actual-box">
+                        <div class="actual-strip">
                             <span>実績</span>
-                            <strong class="{% if product.actual_profit_jpy != None and product.actual_profit_jpy < 0 %}text-danger{% elif product.actual_profit_jpy != None %}text-success{% endif %}">
+                            <b class="{% if product.actual_profit_jpy != None and product.actual_profit_jpy < 0 %}text-danger{% elif product.actual_profit_jpy != None %}text-success{% endif %}">
                                 {% if product.actual_profit_jpy != None %}
                                     {% if product.actual_profit_jpy > 0 %}+{% endif %}{{ product.actual_profit_jpy|floatformat:0 }}円
                                 {% else %}
                                     未売却
                                 {% endif %}
-                            </strong>
+                            </b>
                             <small>
-                                {% if product.days_to_sell != None %}販売まで {{ product.days_to_sell }}日{% elif product.profit_gap_jpy != None %}差額 {{ product.profit_gap_jpy|floatformat:0 }}円{% else %}売却後に自動表示{% endif %}
+                                {% if product.days_to_sell != None %}販売まで {{ product.days_to_sell }}日{% elif product.profit_gap_jpy != None %}差額 {{ product.profit_gap_jpy|floatformat:0 }}円{% else %}編集から入力{% endif %}
                             </small>
                         </div>
-                        <form class="quick-update-form decision-quick" method="post" action="{% url 'product_quick_update' product.pk %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                            {% with form=quick_update_forms|get_item:product.pk %}
-                                {% include "profittracker/partials/quick_update_fields.html" with form=form %}
-                            {% endwith %}
-                        </form>
                         <div class="decision-actions">
                             <a class="btn btn-sm btn-outline-secondary" href="{% url 'product_detail' product.pk %}">詳細</a>
-                            <a class="btn btn-sm btn-outline-dark" href="{% url 'product_update' product.pk %}">編集</a>
+                            <a class="btn btn-sm btn-outline-dark" href="{% url 'product_update' product.pk %}">編集・実績入力</a>
                             <a class="btn btn-sm btn-outline-danger" href="{% url 'product_delete' product.pk %}">削除</a>
                         </div>
                     </div>
