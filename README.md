@@ -67,7 +67,7 @@ Build Command: ./build.sh
 Start Command: gunicorn ebay_profit_tracker.wsgi:application
 ```
 
-Pythonは `runtime.txt` で `python-3.12.8` に固定しています。
+Pythonは `.python-version` で `3.12.8` に固定しています。Renderの環境変数で `PYTHON_VERSION=3.12.8` を設定しても同じです。
 
 初回デプロイ後はRender Shellで管理ユーザーを作成してください。
 
