@@ -469,10 +469,7 @@ main.container {
     border-left: 5px solid #cfd6e2;
     border-radius: 8px;
     box-shadow: var(--app-shadow-soft);
-    display: grid;
-    gap: 14px;
-    grid-template-columns: minmax(0, 1fr) 230px;
-    padding: 14px;
+    padding: 16px;
 }
 
 .decision-card.decision-success {
@@ -487,14 +484,21 @@ main.container {
     border-left-color: var(--app-red);
 }
 
-.decision-main,
-.decision-side {
+.decision-main {
     min-width: 0;
+}
+
+.decision-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 12px;
 }
 
 .decision-product {
     align-items: flex-start;
-    margin-bottom: 12px;
+    margin-bottom: 0;
 }
 
 .decision-product .product-thumb.large {
@@ -558,12 +562,6 @@ main.container {
     margin-top: 5px;
 }
 
-.price-sim-grid {
-    display: grid;
-    gap: 8px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
 .decision-pill {
     border-radius: 999px;
     display: inline-block;
@@ -592,24 +590,35 @@ main.container {
     color: #394150;
 }
 
-.decision-side {
-    border-left: 1px solid var(--app-border);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    justify-content: space-between;
-    padding-left: 14px;
-}
-
 .actual-box,
 .actual-strip {
     background: #fff;
 }
 
 .decision-actions {
-    display: grid;
+    display: flex;
+    flex: 0 0 auto;
     gap: 8px;
-    grid-template-columns: 1fr;
+    white-space: nowrap;
+}
+
+.decision-subline {
+    align-items: center;
+    background: #fbfcfe;
+    border: 1px solid #eef1f5;
+    border-radius: 8px;
+    color: #6b7280;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    font-weight: 750;
+    gap: 8px 16px;
+    padding: 9px 10px;
+}
+
+.decision-subline b {
+    color: var(--app-text);
+    font-weight: 850;
 }
 
 .min-w-0 {
@@ -631,20 +640,12 @@ main.container {
 }
 
 @media (max-width: 991.98px) {
-    .decision-card {
-        grid-template-columns: 1fr;
-    }
-
-    .decision-side {
-        border-left: 0;
-        border-top: 1px solid var(--app-border);
-        padding-left: 0;
-        padding-top: 14px;
-    }
-
-    .decision-summary,
-    .price-sim-grid {
+    .decision-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .decision-header {
+        flex-direction: column;
     }
 }
 
@@ -653,10 +654,14 @@ main.container {
         padding: 14px;
     }
 
-    .decision-summary,
-    .price-sim-grid,
-    .decision-actions {
+    .decision-summary {
         grid-template-columns: 1fr;
+    }
+
+    .decision-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
     }
 }
 

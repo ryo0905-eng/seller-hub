@@ -82,25 +82,31 @@
             {% with product=card.product pricing=card.pricing decision=card.pricing.decision %}
                 <article class="decision-card decision-{{ decision.class }}">
                     <div class="decision-main">
-                        <div class="product-cell decision-product">
-                            {% if product.image_url %}
-                                <img class="product-thumb large" src="{{ product.image_url }}" alt="{{ product.title }}">
-                            {% else %}
-                                <div class="product-thumb large placeholder">No</div>
-                            {% endif %}
-                            <div class="min-w-0">
-                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                    <span class="badge channel-badge channel-{{ product.sales_channel }}">{{ product.get_sales_channel_display }}</span>
-                                    <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
-                                    <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
+                        <div class="decision-header">
+                            <div class="product-cell decision-product">
+                                {% if product.image_url %}
+                                    <img class="product-thumb large" src="{{ product.image_url }}" alt="{{ product.title }}">
+                                {% else %}
+                                    <div class="product-thumb large placeholder">No</div>
+                                {% endif %}
+                                <div class="min-w-0">
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                        <span class="badge channel-badge channel-{{ product.sales_channel }}">{{ product.get_sales_channel_display }}</span>
+                                        <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
+                                        <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
+                                    </div>
+                                    <a class="h5 fw-bold product-title-link d-block mb-1" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
+                                    <div class="text-muted small text-truncate">
+                                        {% if product.sku %}{{ product.sku }} / {% endif %}
+                                        {% if product.brand %}{{ product.brand }} / {% endif %}
+                                        {% if product.category %}{{ product.category }} / {% endif %}
+                                        {% if product.source %}{{ product.source }}{% endif %}
+                                    </div>
                                 </div>
-                                <a class="h5 fw-bold product-title-link d-block mb-1" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
-                                <div class="text-muted small text-truncate">
-                                    {% if product.sku %}{{ product.sku }} / {% endif %}
-                                    {% if product.brand %}{{ product.brand }} / {% endif %}
-                                    {% if product.category %}{{ product.category }} / {% endif %}
-                                    {% if product.source %}{{ product.source }}{% endif %}
-                                </div>
+                            </div>
+                            <div class="decision-actions">
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'product_detail' product.pk %}">詳細</a>
+                                <a class="btn btn-sm btn-outline-dark" href="{% url 'product_update' product.pk %}">編集・実績入力</a>
                             </div>
                         </div>
 
@@ -129,58 +135,19 @@
                                 <small>利益率 {{ product.profit_rate }}% / ROI {{ product.roi }}%</small>
                             </div>
                             <div class="summary-tile">
-                                <span>損益分岐売価</span>
-                                <strong>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% elif pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円{% else %}-{% endif %}</strong>
-                                <small>{% if pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円以上で黒字{% else %}計算不可{% endif %}</small>
-                            </div>
-                        </div>
-
-                        <div class="price-sim-grid">
-                            <div class="price-sim">
                                 <span>10%値下げ</span>
                                 <strong class="{% if pricing.discount_10.profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
                                     {% if pricing.discount_10.profit_jpy > 0 %}+{% endif %}{{ pricing.discount_10.profit_jpy|floatformat:0 }}円
                                 </strong>
                                 <small>{% if pricing.discount_10.sale_price_usd != None %}${{ pricing.discount_10.sale_price_usd }}{% else %}{{ pricing.discount_10.sale_price_jpy|floatformat:0 }}円{% endif %}</small>
                             </div>
-                            <div class="price-sim">
-                                <span>20%値下げ</span>
-                                <strong class="{% if pricing.discount_20.profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
-                                    {% if pricing.discount_20.profit_jpy > 0 %}+{% endif %}{{ pricing.discount_20.profit_jpy|floatformat:0 }}円
-                                </strong>
-                                <small>{% if pricing.discount_20.sale_price_usd != None %}${{ pricing.discount_20.sale_price_usd }}{% else %}{{ pricing.discount_20.sale_price_jpy|floatformat:0 }}円{% endif %}</small>
-                            </div>
-                            <div class="price-sim">
-                                <span>目標利益率売価</span>
-                                <strong>{% if pricing.target_sale_usd != None %}${{ pricing.target_sale_usd }}{% elif pricing.target_sale_jpy != None %}{{ pricing.target_sale_jpy|floatformat:0 }}円{% else %}-{% endif %}</strong>
-                                <small>目標ライン</small>
-                            </div>
-                            <div class="price-sim">
-                                <span>仕入総額</span>
-                                <strong>{{ pricing.total_cost_jpy|floatformat:0 }}円</strong>
-                                <small>仕入 + 送料 + 諸費用</small>
-                            </div>
                         </div>
-                    </div>
 
-                    <div class="decision-side">
-                        <div class="actual-strip">
-                            <span>実績</span>
-                            <b class="{% if product.actual_profit_jpy != None and product.actual_profit_jpy < 0 %}text-danger{% elif product.actual_profit_jpy != None %}text-success{% endif %}">
-                                {% if product.actual_profit_jpy != None %}
-                                    {% if product.actual_profit_jpy > 0 %}+{% endif %}{{ product.actual_profit_jpy|floatformat:0 }}円
-                                {% else %}
-                                    未売却
-                                {% endif %}
-                            </b>
-                            <small>
-                                {% if product.days_to_sell != None %}販売まで {{ product.days_to_sell }}日{% elif product.profit_gap_jpy != None %}差額 {{ product.profit_gap_jpy|floatformat:0 }}円{% else %}編集から入力{% endif %}
-                            </small>
-                        </div>
-                        <div class="decision-actions">
-                            <a class="btn btn-sm btn-outline-secondary" href="{% url 'product_detail' product.pk %}">詳細</a>
-                            <a class="btn btn-sm btn-outline-dark" href="{% url 'product_update' product.pk %}">編集・実績入力</a>
-                            <a class="btn btn-sm btn-outline-danger" href="{% url 'product_delete' product.pk %}">削除</a>
+                        <div class="decision-subline">
+                            <span>赤字ライン: <b>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% elif pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円{% else %}-{% endif %}</b></span>
+                            <span>20%下げ: <b class="{% if pricing.discount_20.profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">{% if pricing.discount_20.profit_jpy > 0 %}+{% endif %}{{ pricing.discount_20.profit_jpy|floatformat:0 }}円</b></span>
+                            <span>目標ライン: <b>{% if pricing.target_sale_usd != None %}${{ pricing.target_sale_usd }}{% elif pricing.target_sale_jpy != None %}{{ pricing.target_sale_jpy|floatformat:0 }}円{% else %}-{% endif %}</b></span>
+                            <span>実績: <b class="{% if product.actual_profit_jpy != None and product.actual_profit_jpy < 0 %}text-danger{% elif product.actual_profit_jpy != None %}text-success{% endif %}">{% if product.actual_profit_jpy != None %}{% if product.actual_profit_jpy > 0 %}+{% endif %}{{ product.actual_profit_jpy|floatformat:0 }}円{% else %}未売却{% endif %}</b></span>
                         </div>
                     </div>
                 </article>
