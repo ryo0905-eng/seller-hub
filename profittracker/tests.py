@@ -164,6 +164,37 @@ class ProductViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Camera Lens")
         self.assertContains(response, "出品中")
+        self.assertContains(response, "価格改定ボード")
+        self.assertContains(response, "損益分岐売価")
+        self.assertContains(response, "10%値下げ")
+        self.assertContains(response, "20%値下げ")
+        self.assertContains(response, "維持")
+
+    def test_product_list_search_filters_products(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        Product.objects.create(
+            owner=user,
+            title="Camera Lens",
+            purchase_price_jpy=12000,
+            expected_sale_price_usd=Decimal("200.00"),
+            shipping_cost_jpy=3000,
+            exchange_rate=Decimal("150.00"),
+        )
+        Product.objects.create(
+            owner=user,
+            title="Vintage Watch",
+            purchase_price_jpy=8000,
+            expected_sale_price_usd=Decimal("120.00"),
+            shipping_cost_jpy=2500,
+            exchange_rate=Decimal("150.00"),
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("product_list"), {"q": "watch"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Vintage Watch")
+        self.assertNotContains(response, "Camera Lens")
 
     def test_exchange_rate_api_requires_login(self):
         response = self.client.get(reverse("exchange_rate_api"))

@@ -438,6 +438,165 @@ main.container {
     padding: 18px;
 }
 
+.pricing-board {
+    margin-bottom: 28px;
+}
+
+.decision-card {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-left: 5px solid #cfd6e2;
+    border-radius: 8px;
+    box-shadow: var(--app-shadow-soft);
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    padding: 18px;
+}
+
+.decision-card.decision-success {
+    border-left-color: var(--app-green);
+}
+
+.decision-card.decision-warning {
+    border-left-color: var(--app-accent);
+}
+
+.decision-card.decision-danger {
+    border-left-color: var(--app-red);
+}
+
+.decision-main,
+.decision-side {
+    min-width: 0;
+}
+
+.decision-product {
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.decision-summary {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 10px;
+}
+
+.summary-tile,
+.price-sim,
+.actual-box {
+    background: #f9fafb;
+    border: 1px solid #eef1f5;
+    border-radius: 8px;
+    min-width: 0;
+    padding: 12px;
+}
+
+.summary-tile.highlight {
+    background: #fffaf0;
+    border-color: #f4df9e;
+}
+
+.summary-tile span,
+.price-sim span,
+.actual-box span {
+    color: var(--app-muted);
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.summary-tile strong,
+.price-sim strong,
+.actual-box strong {
+    color: var(--app-text);
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 850;
+    line-height: 1.15;
+}
+
+.summary-tile small,
+.price-sim small,
+.actual-box small {
+    color: #7b8492;
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 700;
+    margin-top: 6px;
+}
+
+.price-sim-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.decision-pill {
+    border-radius: 999px;
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 850;
+    padding: 0.42rem 0.64rem;
+}
+
+.decision-pill-success {
+    background: #e8f7ef;
+    color: #0f766e;
+}
+
+.decision-pill-warning {
+    background: #fff7db;
+    color: #8a5a00;
+}
+
+.decision-pill-danger {
+    background: #fdecec;
+    color: #b42318;
+}
+
+.decision-pill-neutral {
+    background: #eef2f7;
+    color: #394150;
+}
+
+.decision-side {
+    border-left: 1px solid var(--app-border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-left: 18px;
+}
+
+.actual-box {
+    background: #fff;
+}
+
+.decision-quick {
+    min-width: 0;
+}
+
+.decision-quick .quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.decision-quick .quick-field.tracking,
+.decision-quick .quick-submit {
+    grid-column: span 2;
+}
+
+.decision-actions {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.min-w-0 {
+    min-width: 0;
+}
+
 .profit-line {
     align-items: center;
     background: #f9fafb;
@@ -450,6 +609,36 @@ main.container {
 
 .profit-line strong {
     font-size: 1.25rem;
+}
+
+@media (max-width: 991.98px) {
+    .decision-card {
+        grid-template-columns: 1fr;
+    }
+
+    .decision-side {
+        border-left: 0;
+        border-top: 1px solid var(--app-border);
+        padding-left: 0;
+        padding-top: 14px;
+    }
+
+    .decision-summary,
+    .price-sim-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .decision-card {
+        padding: 14px;
+    }
+
+    .decision-summary,
+    .price-sim-grid,
+    .decision-actions {
+        grid-template-columns: 1fr;
+    }
 }
 
 .form-section {

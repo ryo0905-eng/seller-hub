@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from django.db.models import Count
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -61,21 +62,116 @@ class ProductListView(OwnerQuerysetMixin, ListView):
     template_name = "profittracker/product_list.html"
     context_object_name = "products"
 
+    @staticmethod
+    def yen(value):
+        return int(Decimal(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
     def get_queryset(self):
         queryset = super().get_queryset()
         status = self.request.GET.get("status")
+        query = self.request.GET.get("q", "").strip()
         if status:
             queryset = queryset.filter(status=status)
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query)
+                | Q(sku__icontains=query)
+                | Q(brand__icontains=query)
+                | Q(category__icontains=query)
+                | Q(source__icontains=query)
+            )
         return queryset
+
+    def pricing_snapshot(self, product, target_profit_rate):
+        total_cost_jpy = product.purchase_price_jpy + product.purchase_shipping_jpy + product.other_cost_jpy + product.shipping_cost_jpy
+        fee_multiplier = Decimal("1") - product.ebay_fee_rate / Decimal("100")
+        breakeven_jpy = None
+        breakeven_usd = None
+        target_sale_usd = None
+
+        if fee_multiplier > 0 and product.exchange_rate > 0:
+            breakeven_jpy = self.yen(Decimal(total_cost_jpy) / fee_multiplier)
+            breakeven_usd = (Decimal(breakeven_jpy) / product.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            target_multiplier = fee_multiplier - target_profit_rate / Decimal("100")
+            if target_multiplier > 0:
+                target_sale_jpy = Decimal(total_cost_jpy) / target_multiplier
+                target_sale_usd = (target_sale_jpy / product.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+        def discount_snapshot(percent):
+            sale_price_usd = (product.expected_sale_price_usd * (Decimal("100") - Decimal(percent)) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            sale_price_jpy = self.yen(sale_price_usd * product.exchange_rate)
+            ebay_fee_jpy = self.yen(Decimal(sale_price_jpy) * product.ebay_fee_rate / Decimal("100"))
+            profit_jpy = sale_price_jpy - ebay_fee_jpy - total_cost_jpy
+            return {
+                "percent": percent,
+                "sale_price_usd": sale_price_usd,
+                "profit_jpy": profit_jpy,
+            }
+
+        discount_10 = discount_snapshot(10)
+        discount_20 = discount_snapshot(20)
+        age = product.inventory_age_days
+        profit_rate = product.profit_rate
+
+        if product.status in {Product.Status.SOLD, Product.Status.SHIPPED}:
+            if product.actual_profit_jpy is not None and product.actual_profit_jpy < 0:
+                decision = {"label": "赤字確定", "class": "danger", "message": "実績を分析"}
+            else:
+                decision = {"label": "売却済み", "class": "success", "message": "実績確認"}
+        elif product.expected_profit_jpy < 0:
+            decision = {"label": "要見直し", "class": "danger", "message": "現売価で赤字"}
+        elif (age is not None and age >= 90 and profit_rate < Decimal("15.0")) or (age is not None and age >= 60 and discount_20["profit_jpy"] < 0):
+            decision = {"label": "損切り候補", "class": "danger", "message": "回転優先で再価格"}
+        elif age is not None and age >= 45:
+            decision = {"label": "値下げ検討", "class": "warning", "message": "10%下げを確認"}
+        elif age is not None and age >= 30 and discount_10["profit_jpy"] >= 0:
+            decision = {"label": "値下げ余地あり", "class": "success", "message": "10%下げても黒字"}
+        else:
+            decision = {"label": "維持", "class": "neutral", "message": "現価格で様子見"}
+
+        return {
+            "total_cost_jpy": total_cost_jpy,
+            "breakeven_jpy": breakeven_jpy,
+            "breakeven_usd": breakeven_usd,
+            "target_sale_usd": target_sale_usd,
+            "discount_10": discount_10,
+            "discount_20": discount_20,
+            "decision": decision,
+        }
+
+    def sort_products(self, products):
+        sort = self.request.GET.get("sort", "updated")
+        if sort == "age_desc":
+            return sorted(products, key=lambda product: product.inventory_age_days or -1, reverse=True)
+        if sort == "profit_asc":
+            return sorted(products, key=lambda product: product.expected_profit_jpy)
+        if sort == "profit_rate_asc":
+            return sorted(products, key=lambda product: product.profit_rate)
+        if sort == "roi_asc":
+            return sorted(products, key=lambda product: product.roi)
+        return products
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        products = list(self.get_queryset())
+        seller_settings = SellerSettings.get_for_user(self.request.user)
+        products = self.sort_products(list(self.get_queryset()))
         sold_products = [product for product in products if product.actual_profit_jpy is not None]
         days_to_sell = [product.days_to_sell for product in products if product.days_to_sell is not None]
+        product_cards = [
+            {
+                "product": product,
+                "pricing": self.pricing_snapshot(product, seller_settings.default_target_profit_rate),
+            }
+            for product in products
+        ]
         context["status_choices"] = Product.Status.choices
         context["quick_update_forms"] = {product.pk: ProductQuickUpdateForm(instance=product) for product in products}
+        context["products"] = products
+        context["product_cards"] = product_cards
         context["current_status"] = self.request.GET.get("status", "")
+        context["current_query"] = self.request.GET.get("q", "").strip()
+        context["current_sort"] = self.request.GET.get("sort", "updated")
+        context["review_count"] = sum(1 for card in product_cards if card["pricing"]["decision"]["class"] in {"danger", "warning"})
         context["total_profit"] = sum(product.expected_profit_jpy for product in products)
         context["total_actual_profit"] = sum(product.actual_profit_jpy for product in sold_products)
         context["inventory_value"] = sum(product.inventory_value_jpy for product in products)

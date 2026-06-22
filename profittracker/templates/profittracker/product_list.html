@@ -6,9 +6,9 @@
 {% block content %}
 <div class="page-hero d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center mb-4">
     <div>
-        <div class="eyebrow">Seller Dashboard</div>
-        <h1 class="h2 fw-bold mb-2">商品一覧</h1>
-        <p class="text-muted mb-0">想定利益、実利益、在庫日数、売れるまでの日数をひと目で管理します。</p>
+        <div class="eyebrow">Pricing Command Center</div>
+        <h1 class="h2 fw-bold mb-2">価格改定ボード</h1>
+        <p class="text-muted mb-0">在庫日数、値下げ余地、損益分岐売価を見ながら、日々の価格改定と損切り判断をします。</p>
     </div>
     <div class="d-flex flex-column flex-sm-row gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'product_import' %}">CSV取込</a>
@@ -27,16 +27,16 @@
     </div>
     <div class="col-6 col-lg-3">
         <div class="metric">
-            <span>想定利益合計</span>
-            <strong class="{% if total_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ total_profit|floatformat:0 }}円</strong>
-            <small>Expected profit</small>
+            <span>要確認</span>
+            <strong class="{% if review_count > 0 %}text-danger{% endif %}">{{ review_count }}</strong>
+            <small>Pricing alerts</small>
         </div>
     </div>
     <div class="col-6 col-lg-3">
         <div class="metric">
-            <span>実利益合計</span>
-            <strong class="{% if total_actual_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ total_actual_profit|floatformat:0 }}円</strong>
-            <small>Actual profit</small>
+            <span>想定利益合計</span>
+            <strong class="{% if total_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ total_profit|floatformat:0 }}円</strong>
+            <small>Expected profit</small>
         </div>
     </div>
     <div class="col-6 col-lg-3">
@@ -46,26 +46,14 @@
             <small>Inventory value</small>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="metric">
-            <span>平均販売日数</span>
-            <strong>{% if average_days_to_sell != None %}{{ average_days_to_sell }}日{% else %}-{% endif %}</strong>
-            <small>Average sell-through</small>
-        </div>
-    </div>
-    {% for value, label in status_choices %}
-        <div class="col-6 col-lg-3">
-            <div class="metric compact">
-                <span>{{ label }}</span>
-                <strong>{{ status_counts|get_item:value|default:0 }}</strong>
-                <small>Status</small>
-            </div>
-        </div>
-    {% endfor %}
 </div>
 
 <form method="get" class="filter-bar row g-2 align-items-end mb-3">
-    <div class="col-12 col-sm-6 col-md-4">
+    <div class="col-12 col-lg-4">
+        <label class="form-label" for="q">検索</label>
+        <input class="form-control" id="q" name="q" type="search" value="{{ current_query }}" placeholder="商品名・SKU・ブランド・仕入先">
+    </div>
+    <div class="col-6 col-lg-3">
         <label class="form-label" for="status">ステータス</label>
         <select class="form-select" id="status" name="status">
             <option value="">すべて</option>
@@ -74,143 +62,137 @@
             {% endfor %}
         </select>
     </div>
-    <div class="col-12 col-sm-auto">
-        <button class="btn btn-dark-soft" type="submit">絞り込み</button>
+    <div class="col-6 col-lg-3">
+        <label class="form-label" for="sort">並び替え</label>
+        <select class="form-select" id="sort" name="sort">
+            <option value="updated" {% if current_sort == "updated" %}selected{% endif %}>更新が新しい順</option>
+            <option value="age_desc" {% if current_sort == "age_desc" %}selected{% endif %}>在庫日数が長い順</option>
+            <option value="profit_asc" {% if current_sort == "profit_asc" %}selected{% endif %}>想定利益が低い順</option>
+            <option value="profit_rate_asc" {% if current_sort == "profit_rate_asc" %}selected{% endif %}>利益率が低い順</option>
+            <option value="roi_asc" {% if current_sort == "roi_asc" %}selected{% endif %}>ROIが低い順</option>
+        </select>
+    </div>
+    <div class="col-12 col-lg-2 d-flex gap-2">
+        <button class="btn btn-dark-soft flex-fill" type="submit">表示</button>
         <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">解除</a>
     </div>
 </form>
 
-{% if products %}
-    <div class="table-responsive d-none d-lg-block">
-        <table class="table table-hover align-middle app-table">
-            <thead>
-            <tr>
-                <th>商品</th>
-                <th>ステータス</th>
-                <th>回転</th>
-                <th class="text-end">想定利益</th>
-                <th class="text-end">実利益</th>
-                <th class="text-end">ROI</th>
-                <th>クイック更新</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for product in products %}
-                <tr>
-                    <td>
-                        <div class="product-cell">
+{% if product_cards %}
+    <div class="pricing-board vstack gap-3">
+        {% for card in product_cards %}
+            {% with product=card.product pricing=card.pricing decision=card.pricing.decision %}
+                <article class="decision-card decision-{{ decision.class }}">
+                    <div class="decision-main">
+                        <div class="product-cell decision-product">
                             {% if product.image_url %}
-                                <img class="product-thumb" src="{{ product.image_url }}" alt="{{ product.title }}">
+                                <img class="product-thumb large" src="{{ product.image_url }}" alt="{{ product.title }}">
                             {% else %}
-                                <div class="product-thumb placeholder">No</div>
+                                <div class="product-thumb large placeholder">No</div>
                             {% endif %}
-                            <div>
-                                <a class="fw-semibold product-title-link" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
-                                <div class="text-muted small">
-                                    {% if product.sku %}{{ product.sku }} / {% endif %}{{ product.brand }} {{ product.category }} {{ product.source }}
+                            <div class="min-w-0">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                    <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
+                                    <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
+                                </div>
+                                <a class="h5 fw-bold product-title-link d-block mb-1" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
+                                <div class="text-muted small text-truncate">
+                                    {% if product.sku %}{{ product.sku }} / {% endif %}
+                                    {% if product.brand %}{{ product.brand }} / {% endif %}
+                                    {% if product.category %}{{ product.category }} / {% endif %}
+                                    {% if product.source %}{{ product.source }}{% endif %}
                                 </div>
                             </div>
                         </div>
-                    </td>
-                    <td><span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span></td>
-                    <td>
-                        <div class="small">販売: {% if product.days_to_sell != None %}{{ product.days_to_sell }}日{% else %}-{% endif %}</div>
-                        <div class="small text-muted">在庫: {% if product.inventory_age_days != None %}{{ product.inventory_age_days }}日{% else %}-{% endif %}</div>
-                    </td>
-                    <td class="text-end fw-bold {% if product.expected_profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
-                        {{ product.expected_profit_jpy|floatformat:0 }}円
-                        <div class="text-muted small">売価 {{ product.sale_price_jpy|floatformat:0 }}円</div>
-                    </td>
-                    <td class="text-end fw-bold {% if product.actual_profit_jpy != None and product.actual_profit_jpy < 0 %}text-danger{% elif product.actual_profit_jpy != None %}text-success{% endif %}">
-                        {% if product.actual_profit_jpy != None %}
-                            {{ product.actual_profit_jpy|floatformat:0 }}円
-                            <div class="text-muted small">
-                                差額 {% if product.profit_gap_jpy > 0 %}+{% endif %}{{ product.profit_gap_jpy|floatformat:0 }}円
+
+                        <div class="decision-summary">
+                            <div class="summary-tile highlight">
+                                <span>在庫日数</span>
+                                <strong>{% if product.inventory_age_days != None %}{{ product.inventory_age_days }}日{% else %}-{% endif %}</strong>
+                                <small>{{ decision.message }}</small>
                             </div>
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td class="text-end">{{ product.roi }}%</td>
-                    <td>
-                        <form class="quick-update-form" method="post" action="{% url 'product_quick_update' product.pk %}">
+                            <div class="summary-tile">
+                                <span>現在売価</span>
+                                <strong>${{ product.expected_sale_price_usd }}</strong>
+                                <small>{{ product.sale_price_jpy|floatformat:0 }}円</small>
+                            </div>
+                            <div class="summary-tile">
+                                <span>想定利益</span>
+                                <strong class="{% if product.expected_profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
+                                    {% if product.expected_profit_jpy > 0 %}+{% endif %}{{ product.expected_profit_jpy|floatformat:0 }}円
+                                </strong>
+                                <small>利益率 {{ product.profit_rate }}% / ROI {{ product.roi }}%</small>
+                            </div>
+                            <div class="summary-tile">
+                                <span>損益分岐売価</span>
+                                <strong>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% else %}-{% endif %}</strong>
+                                <small>{% if pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円以上で黒字{% else %}計算不可{% endif %}</small>
+                            </div>
+                        </div>
+
+                        <div class="price-sim-grid">
+                            <div class="price-sim">
+                                <span>10%値下げ</span>
+                                <strong class="{% if pricing.discount_10.profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
+                                    {% if pricing.discount_10.profit_jpy > 0 %}+{% endif %}{{ pricing.discount_10.profit_jpy|floatformat:0 }}円
+                                </strong>
+                                <small>${{ pricing.discount_10.sale_price_usd }}</small>
+                            </div>
+                            <div class="price-sim">
+                                <span>20%値下げ</span>
+                                <strong class="{% if pricing.discount_20.profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
+                                    {% if pricing.discount_20.profit_jpy > 0 %}+{% endif %}{{ pricing.discount_20.profit_jpy|floatformat:0 }}円
+                                </strong>
+                                <small>${{ pricing.discount_20.sale_price_usd }}</small>
+                            </div>
+                            <div class="price-sim">
+                                <span>目標利益率売価</span>
+                                <strong>{% if pricing.target_sale_usd != None %}${{ pricing.target_sale_usd }}{% else %}-{% endif %}</strong>
+                                <small>目標ライン</small>
+                            </div>
+                            <div class="price-sim">
+                                <span>仕入総額</span>
+                                <strong>{{ pricing.total_cost_jpy|floatformat:0 }}円</strong>
+                                <small>仕入 + 送料 + 諸費用</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="decision-side">
+                        <div class="actual-box">
+                            <span>実績</span>
+                            <strong class="{% if product.actual_profit_jpy != None and product.actual_profit_jpy < 0 %}text-danger{% elif product.actual_profit_jpy != None %}text-success{% endif %}">
+                                {% if product.actual_profit_jpy != None %}
+                                    {% if product.actual_profit_jpy > 0 %}+{% endif %}{{ product.actual_profit_jpy|floatformat:0 }}円
+                                {% else %}
+                                    未売却
+                                {% endif %}
+                            </strong>
+                            <small>
+                                {% if product.days_to_sell != None %}販売まで {{ product.days_to_sell }}日{% elif product.profit_gap_jpy != None %}差額 {{ product.profit_gap_jpy|floatformat:0 }}円{% else %}売却後に自動表示{% endif %}
+                            </small>
+                        </div>
+                        <form class="quick-update-form decision-quick" method="post" action="{% url 'product_quick_update' product.pk %}">
                             {% csrf_token %}
                             <input type="hidden" name="next" value="{{ request.get_full_path }}">
                             {% with form=quick_update_forms|get_item:product.pk %}
                                 {% include "profittracker/partials/quick_update_fields.html" with form=form %}
                             {% endwith %}
                         </form>
-                    </td>
-                    <td class="text-end text-nowrap">
-                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'product_detail' product.pk %}">詳細</a>
-                        <a class="btn btn-sm btn-outline-dark" href="{% url 'product_update' product.pk %}">編集</a>
-                        <a class="btn btn-sm btn-outline-danger" href="{% url 'product_delete' product.pk %}">削除</a>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="d-lg-none vstack gap-3">
-        {% for product in products %}
-            <div class="card shadow-sm product-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between gap-2">
-                        <div>
-                            <div class="product-cell mb-2">
-                                {% if product.image_url %}
-                                    <img class="product-thumb" src="{{ product.image_url }}" alt="{{ product.title }}">
-                                {% else %}
-                                    <div class="product-thumb placeholder">No</div>
-                                {% endif %}
-                                <div>
-                                    <h2 class="h5 fw-bold mb-1">{{ product.title }}</h2>
-                                </div>
-                            </div>
-                            <div class="text-muted small">
-                                {% if product.sku %}{{ product.sku }} / {% endif %}{{ product.brand }} {{ product.category }}
-                            </div>
+                        <div class="decision-actions">
+                            <a class="btn btn-sm btn-outline-secondary" href="{% url 'product_detail' product.pk %}">詳細</a>
+                            <a class="btn btn-sm btn-outline-dark" href="{% url 'product_update' product.pk %}">編集</a>
+                            <a class="btn btn-sm btn-outline-danger" href="{% url 'product_delete' product.pk %}">削除</a>
                         </div>
-                        <span class="badge status-badge status-{{ product.status }} align-self-start">{{ product.get_status_display }}</span>
                     </div>
-                    <div class="profit-line my-3">
-                        <span>想定利益</span>
-                        <strong class="{% if product.expected_profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">{{ product.expected_profit_jpy|floatformat:0 }}円</strong>
-                    </div>
-                    <div class="profit-line my-3">
-                        <span>実利益</span>
-                        <strong class="{% if product.actual_profit_jpy != None and product.actual_profit_jpy < 0 %}text-danger{% elif product.actual_profit_jpy != None %}text-success{% endif %}">
-                            {% if product.actual_profit_jpy != None %}{{ product.actual_profit_jpy|floatformat:0 }}円{% else %}-{% endif %}
-                        </strong>
-                    </div>
-                    <div class="row g-2 small">
-                        <div class="col-6">販売日数: {% if product.days_to_sell != None %}{{ product.days_to_sell }}日{% else %}-{% endif %}</div>
-                        <div class="col-6">在庫日数: {% if product.inventory_age_days != None %}{{ product.inventory_age_days }}日{% else %}-{% endif %}</div>
-                        <div class="col-6">ROI: {{ product.roi }}%</div>
-                        <div class="col-6">差額: {% if product.profit_gap_jpy != None %}{{ product.profit_gap_jpy|floatformat:0 }}円{% else %}-{% endif %}</div>
-                    </div>
-                    <form class="quick-update-form mobile mt-3" method="post" action="{% url 'product_quick_update' product.pk %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        {% with form=quick_update_forms|get_item:product.pk %}
-                            {% include "profittracker/partials/quick_update_fields.html" with form=form %}
-                        {% endwith %}
-                    </form>
-                    <div class="d-flex gap-2 mt-3">
-                        <a class="btn btn-sm btn-outline-secondary flex-fill" href="{% url 'product_detail' product.pk %}">詳細</a>
-                        <a class="btn btn-sm btn-outline-dark flex-fill" href="{% url 'product_update' product.pk %}">編集</a>
-                        <a class="btn btn-sm btn-outline-danger flex-fill" href="{% url 'product_delete' product.pk %}">削除</a>
-                    </div>
-                </div>
-            </div>
+                </article>
+            {% endwith %}
         {% endfor %}
     </div>
 {% else %}
     <div class="empty-state">
-        <h2 class="h4 fw-bold">まだ商品がありません</h2>
-        <p class="text-muted">最初の商品を登録して、想定利益を確認しましょう。</p>
+        <h2 class="h4 fw-bold">対象の商品がありません</h2>
+        <p class="text-muted">条件を変えるか、最初の商品を登録して価格改定ボードを使い始めましょう。</p>
         <a class="btn btn-warning" href="{% url 'product_create' %}">商品を登録</a>
     </div>
 {% endif %}
