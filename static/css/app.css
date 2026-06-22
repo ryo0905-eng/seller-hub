@@ -523,7 +523,7 @@ main.container {
 .decision-summary {
     display: grid;
     gap: 8px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     margin-bottom: 8px;
     width: 100%;
 }
@@ -562,7 +562,7 @@ main.container {
 .actual-strip b {
     color: var(--app-text);
     display: block;
-    font-size: 1rem;
+    font-size: 1.08rem;
     font-weight: 850;
     line-height: 1.15;
 }
@@ -658,7 +658,7 @@ main.container {
 
 @media (max-width: 991.98px) {
     .decision-summary {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .decision-header {
@@ -672,7 +672,7 @@ main.container {
     }
 
     .decision-summary {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .decision-actions {

@@ -114,12 +114,12 @@
 
                         <div class="decision-summary">
                             <div class="summary-tile highlight">
-                                <span>在庫日数</span>
-                                <strong>{% if product.inventory_age_days != None %}{{ product.inventory_age_days }}日{% else %}未入力{% endif %}</strong>
-                                <small>{{ decision.message }}</small>
+                                <span>仕入れ値</span>
+                                <strong>{{ product.purchase_price_jpy|floatformat:0 }}円</strong>
+                                <small>総コスト {{ pricing.total_cost_jpy|floatformat:0 }}円</small>
                             </div>
                             <div class="summary-tile">
-                                <span>現在売価</span>
+                                <span>想定売価</span>
                                 <strong>
                                     {% if product.expected_sale_price_usd != None %}
                                         ${{ product.expected_sale_price_usd }}
@@ -130,26 +130,20 @@
                                 <small>{% if product.expected_sale_price_usd != None %}{{ product.sale_price_jpy|floatformat:0 }}円{% else %}{{ product.ebay_fee_rate }}%手数料{% endif %}</small>
                             </div>
                             <div class="summary-tile">
-                                <span>想定利益</span>
-                                <strong class="{% if product.expected_profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
-                                    {% if product.expected_profit_jpy > 0 %}+{% endif %}{{ product.expected_profit_jpy|floatformat:0 }}円
-                                </strong>
-                                <small>利益率 {{ product.profit_rate }}% / ROI {{ product.roi }}%</small>
+                                <span>赤字売価</span>
+                                <strong>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% elif pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円{% else %}-{% endif %}</strong>
+                                <small>{% if pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円以上で黒字{% else %}計算不可{% endif %}</small>
                             </div>
                             <div class="summary-tile">
-                                <span>10%値下げ</span>
-                                <strong class="{% if pricing.discount_10.profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
-                                    {% if pricing.discount_10.profit_jpy > 0 %}+{% endif %}{{ pricing.discount_10.profit_jpy|floatformat:0 }}円
-                                </strong>
-                                <small>{% if pricing.discount_10.sale_price_usd != None %}${{ pricing.discount_10.sale_price_usd }}{% else %}{{ pricing.discount_10.sale_price_jpy|floatformat:0 }}円{% endif %}</small>
+                                <span>想定利益率</span>
+                                <strong class="{% if product.profit_rate < 0 %}text-danger{% else %}text-success{% endif %}">{{ product.profit_rate }}%</strong>
+                                <small>{% if product.expected_profit_jpy > 0 %}+{% endif %}{{ product.expected_profit_jpy|floatformat:0 }}円</small>
                             </div>
-                        </div>
-
-                        <div class="decision-subline">
-                            <span>赤字ライン: <b>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% elif pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円{% else %}-{% endif %}</b></span>
-                            <span>20%下げ: <b class="{% if pricing.discount_20.profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">{% if pricing.discount_20.profit_jpy > 0 %}+{% endif %}{{ pricing.discount_20.profit_jpy|floatformat:0 }}円</b></span>
-                            <span>目標ライン: <b>{% if pricing.target_sale_usd != None %}${{ pricing.target_sale_usd }}{% elif pricing.target_sale_jpy != None %}{{ pricing.target_sale_jpy|floatformat:0 }}円{% else %}-{% endif %}</b></span>
-                            <span>実績: <b class="{% if product.actual_profit_jpy != None and product.actual_profit_jpy < 0 %}text-danger{% elif product.actual_profit_jpy != None %}text-success{% endif %}">{% if product.actual_profit_jpy != None %}{% if product.actual_profit_jpy > 0 %}+{% endif %}{{ product.actual_profit_jpy|floatformat:0 }}円{% else %}未売却{% endif %}</b></span>
+                            <div class="summary-tile">
+                                <span>想定ROI</span>
+                                <strong class="{% if product.roi < 0 %}text-danger{% else %}text-success{% endif %}">{{ product.roi }}%</strong>
+                                <small>投資回収率</small>
+                            </div>
                         </div>
                     </div>
                 </article>
