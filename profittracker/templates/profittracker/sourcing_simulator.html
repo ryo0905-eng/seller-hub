@@ -7,7 +7,7 @@
     <div>
         <div class="eyebrow">Sourcing Simulator</div>
         <h1 class="h2 fw-bold mb-2">仕入れ判断</h1>
-        <p class="text-muted mb-0">仕入れ前に利益、ROI、上限仕入価格を計算して、買ってよいかを判断します。</p>
+        <p class="text-muted mb-0">仕入れ前に利益率とROIを計算して、買ってよいかを判断します。</p>
     </div>
     <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">商品一覧へ</a>
 </div>
@@ -76,13 +76,16 @@
                 <dl class="detail-grid">
                     <dt>eBay手数料</dt><dd>{{ result.ebay_fee_jpy|floatformat:0 }}円</dd>
                     <dt>上限仕入価格</dt><dd class="{% if result.max_purchase_price_jpy < 0 %}text-danger{% else %}text-success{% endif %} fw-bold">{{ result.max_purchase_price_jpy|floatformat:0 }}円</dd>
-                    <dt>目標利益に必要な売価</dt><dd>{% if result.needed_sale_price_usd %}${{ result.needed_sale_price_usd }}{% else %}-{% endif %}</dd>
+                    <dt>ROI基準の上限</dt><dd>{{ result.max_purchase_by_roi_jpy|floatformat:0 }}円</dd>
+                    <dt>利益率基準の上限</dt><dd>{{ result.max_purchase_by_profit_rate_jpy|floatformat:0 }}円</dd>
+                    <dt>目標ROIに必要な売価</dt><dd>{% if result.needed_sale_price_for_roi_usd %}${{ result.needed_sale_price_for_roi_usd }}{% else %}-{% endif %}</dd>
+                    <dt>目標利益率に必要な売価</dt><dd>{% if result.needed_sale_price_for_profit_rate_usd %}${{ result.needed_sale_price_for_profit_rate_usd }}{% else %}-{% endif %}</dd>
                 </dl>
             </div>
         {% else %}
             <div class="empty-state h-100 d-flex flex-column justify-content-center">
                 <h2 class="h4 fw-bold">条件を入力してください</h2>
-                <p class="text-muted mb-0">判定すると、利益・ROI・上限仕入価格が表示されます。</p>
+                <p class="text-muted mb-0">判定すると、利益率・ROI・上限仕入価格が表示されます。</p>
             </div>
         {% endif %}
     </div>

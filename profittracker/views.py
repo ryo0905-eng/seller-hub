@@ -18,8 +18,8 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, TemplateView, UpdateView
 
-from .forms import ProductCsvImportForm, ProductForm, ProductQuickUpdateForm, SourcingSimulatorForm
-from .models import Product
+from .forms import ProductCsvImportForm, ProductForm, ProductQuickUpdateForm, SellerSettingsForm, SourcingSimulatorForm
+from .models import Product, SellerSettings
 
 
 @login_required
@@ -222,20 +222,35 @@ class SourcingSimulatorView(LoginRequiredMixin, FormView):
         if invested:
             roi = (Decimal(profit_jpy) / Decimal(invested) * Decimal("100")).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
 
-        target_profit_jpy = cleaned_data["target_profit_jpy"]
-        max_purchase_price_jpy = sale_price_jpy - ebay_fee_jpy - cleaned_data["shipping_cost_jpy"] - target_profit_jpy
+        gross_remaining_jpy = sale_price_jpy - ebay_fee_jpy - cleaned_data["shipping_cost_jpy"]
+        max_purchase_by_roi_jpy = self.yen(
+            Decimal(gross_remaining_jpy) / (Decimal("1") + cleaned_data["target_roi"] / Decimal("100"))
+        )
+        max_purchase_by_profit_rate_jpy = self.yen(
+            Decimal(gross_remaining_jpy) - Decimal(sale_price_jpy) * cleaned_data["target_profit_rate"] / Decimal("100")
+        )
+        max_purchase_price_jpy = min(max_purchase_by_roi_jpy, max_purchase_by_profit_rate_jpy)
 
         fee_multiplier = Decimal("1") - cleaned_data["ebay_fee_rate"] / Decimal("100")
-        needed_sale_price_usd = None
+        needed_sale_price_for_roi_usd = None
+        needed_sale_price_for_profit_rate_usd = None
         if fee_multiplier > 0 and cleaned_data["exchange_rate"] > 0:
-            needed_sale_price_jpy = (Decimal(cleaned_data["purchase_price_jpy"] + cleaned_data["shipping_cost_jpy"] + target_profit_jpy) / fee_multiplier)
-            needed_sale_price_usd = (needed_sale_price_jpy / cleaned_data["exchange_rate"]).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            needed_profit_for_roi = Decimal(cleaned_data["purchase_price_jpy"]) * cleaned_data["target_roi"] / Decimal("100")
+            needed_sale_price_for_roi_jpy = (
+                Decimal(cleaned_data["purchase_price_jpy"] + cleaned_data["shipping_cost_jpy"]) + needed_profit_for_roi
+            ) / fee_multiplier
+            needed_sale_price_for_roi_usd = (needed_sale_price_for_roi_jpy / cleaned_data["exchange_rate"]).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-        if profit_jpy >= target_profit_jpy and profit_rate >= cleaned_data["target_profit_rate"]:
+            profit_rate_multiplier = fee_multiplier - cleaned_data["target_profit_rate"] / Decimal("100")
+            if profit_rate_multiplier > 0:
+                needed_sale_price_for_profit_rate_jpy = Decimal(cleaned_data["purchase_price_jpy"] + cleaned_data["shipping_cost_jpy"]) / profit_rate_multiplier
+                needed_sale_price_for_profit_rate_usd = (needed_sale_price_for_profit_rate_jpy / cleaned_data["exchange_rate"]).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+        if profit_rate >= cleaned_data["target_profit_rate"] and roi >= cleaned_data["target_roi"]:
             decision = "OK"
             decision_class = "success"
             decision_message = "仕入れ候補として良さそうです。"
-        elif profit_jpy >= 1000 and profit_rate >= Decimal("10.0"):
+        elif profit_rate >= cleaned_data["target_profit_rate"] / Decimal("2") and roi >= cleaned_data["target_roi"] / Decimal("2"):
             decision = "注意"
             decision_class = "warning"
             decision_message = "条件次第です。値下げ余地や回転日数を確認しましょう。"
@@ -251,18 +266,30 @@ class SourcingSimulatorView(LoginRequiredMixin, FormView):
             "profit_rate": profit_rate,
             "roi": roi,
             "max_purchase_price_jpy": max_purchase_price_jpy,
-            "needed_sale_price_usd": needed_sale_price_usd,
+            "max_purchase_by_roi_jpy": max_purchase_by_roi_jpy,
+            "max_purchase_by_profit_rate_jpy": max_purchase_by_profit_rate_jpy,
+            "needed_sale_price_for_roi_usd": needed_sale_price_for_roi_usd,
+            "needed_sale_price_for_profit_rate_usd": needed_sale_price_for_profit_rate_usd,
             "decision": decision,
             "decision_class": decision_class,
             "decision_message": decision_message,
         }
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["seller_settings"] = SellerSettings.get_for_user(self.request.user)
+        return kwargs
+
     def get_initial(self):
         initial = super().get_initial()
+        seller_settings = SellerSettings.get_for_user(self.request.user)
         initial.update(
             {
                 "exchange_rate": self.request.GET.get("exchange_rate", ""),
-                "ebay_fee_rate": self.request.GET.get("ebay_fee_rate", Decimal("15.00")),
+                "shipping_cost_jpy": seller_settings.default_shipping_cost_jpy,
+                "ebay_fee_rate": self.request.GET.get("ebay_fee_rate", seller_settings.default_ebay_fee_rate),
+                "target_profit_rate": seller_settings.default_target_profit_rate,
+                "target_roi": seller_settings.default_target_roi,
             }
         )
         return initial
@@ -281,6 +308,19 @@ class SourcingSimulatorView(LoginRequiredMixin, FormView):
         return self.render_to_response(context)
 
 
+class SellerSettingsView(LoginRequiredMixin, UpdateView):
+    form_class = SellerSettingsForm
+    template_name = "profittracker/seller_settings.html"
+    success_url = reverse_lazy("seller_settings")
+
+    def get_object(self, queryset=None):
+        return SellerSettings.get_for_user(self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, "設定を保存しました。")
+        return super().form_valid(form)
+
+
 class ProductDetailView(OwnerQuerysetMixin, DetailView):
     template_name = "profittracker/product_detail.html"
     context_object_name = "product"
@@ -294,6 +334,13 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
+        seller_settings = SellerSettings.get_for_user(self.request.user)
+        initial.update(
+            {
+                "shipping_cost_jpy": seller_settings.default_shipping_cost_jpy,
+                "ebay_fee_rate": seller_settings.default_ebay_fee_rate,
+            }
+        )
         for field in [
             "title",
             "purchase_price_jpy",

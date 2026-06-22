@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Product
+from .models import Product, SellerSettings
 from .forms import ProductForm
 
 
@@ -154,8 +154,8 @@ class ProductViewTests(TestCase):
                 "shipping_cost_jpy": "2500",
                 "exchange_rate": "155.00",
                 "ebay_fee_rate": "15.00",
-                "target_profit_jpy": "3000",
                 "target_profit_rate": "20.0",
+                "target_roi": "30.0",
             },
         )
 
@@ -163,6 +163,48 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "判定")
         self.assertContains(response, "商品登録へ引き継ぐ")
         self.assertContains(response, "上限仕入価格")
+
+    def test_seller_settings_update_and_defaults(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("seller_settings"),
+            {
+                "default_target_profit_rate": "25.0",
+                "default_target_roi": "40.0",
+                "default_shipping_cost_jpy": "1800",
+                "default_ebay_fee_rate": "16.00",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        settings = SellerSettings.get_for_user(user)
+        self.assertEqual(settings.default_target_profit_rate, Decimal("25.0"))
+        self.assertEqual(settings.default_target_roi, Decimal("40.0"))
+        self.assertEqual(settings.default_shipping_cost_jpy, 1800)
+        self.assertEqual(settings.default_ebay_fee_rate, Decimal("16.00"))
+
+        simulator_response = self.client.get(reverse("sourcing_simulator"))
+        self.assertContains(simulator_response, 'value="1800"')
+        self.assertContains(simulator_response, 'value="16.00"')
+        self.assertContains(simulator_response, 'value="25.0"')
+        self.assertContains(simulator_response, 'value="40.0"')
+
+    def test_product_create_uses_seller_settings_defaults(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        SellerSettings.objects.create(
+            owner=user,
+            default_shipping_cost_jpy=2200,
+            default_ebay_fee_rate=Decimal("16.50"),
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("product_create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="shipping_cost_jpy" value="2200"')
+        self.assertContains(response, 'name="ebay_fee_rate" value="16.50"')
 
     def test_product_create_accepts_simulator_initial_values(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")

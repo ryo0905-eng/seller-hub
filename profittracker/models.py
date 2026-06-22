@@ -6,6 +6,31 @@ from django.urls import reverse
 from django.utils import timezone
 
 
+class SellerSettings(models.Model):
+    owner = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="seller_settings",
+        verbose_name="所有者",
+    )
+    default_target_profit_rate = models.DecimalField("デフォルト目標利益率", max_digits=5, decimal_places=1, default=Decimal("20.0"))
+    default_target_roi = models.DecimalField("デフォルト目標ROI", max_digits=5, decimal_places=1, default=Decimal("30.0"))
+    default_shipping_cost_jpy = models.PositiveIntegerField("デフォルト送料", default=0)
+    default_ebay_fee_rate = models.DecimalField("デフォルトeBay手数料率", max_digits=5, decimal_places=2, default=Decimal("15.00"))
+
+    class Meta:
+        verbose_name = "セラー設定"
+        verbose_name_plural = "セラー設定"
+
+    def __str__(self):
+        return f"{self.owner} の設定"
+
+    @classmethod
+    def get_for_user(cls, user):
+        settings_obj, _ = cls.objects.get_or_create(owner=user)
+        return settings_obj
+
+
 class Product(models.Model):
     class Status(models.TextChoices):
         PURCHASED = "purchased", "仕入れ済み"
