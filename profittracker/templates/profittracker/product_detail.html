@@ -60,6 +60,7 @@
         <div class="analytics-panel">
             <h2 class="h5 fw-bold mb-3">基本情報</h2>
             <dl class="detail-grid">
+                <dt>販売チャネル</dt><dd>{{ product.get_sales_channel_display }}</dd>
                 <dt>ステータス</dt><dd><span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span></dd>
                 <dt>状態</dt><dd>{{ product.get_condition_display }}</dd>
                 <dt>数量</dt><dd>{{ product.quantity }}</dd>
@@ -87,9 +88,9 @@
             <h2 class="h5 fw-bold mb-3">想定</h2>
             <dl class="detail-grid">
                 <dt>仕入価格</dt><dd>{{ product.purchase_price_jpy|floatformat:0 }}円</dd>
-                <dt>想定売価</dt><dd>${{ product.expected_sale_price_usd }} / {{ product.sale_price_jpy|floatformat:0 }}円</dd>
+                <dt>想定売価</dt><dd>{% if product.expected_sale_price_usd %}${{ product.expected_sale_price_usd }} / {% endif %}{{ product.sale_price_jpy|floatformat:0 }}円</dd>
                 <dt>送料</dt><dd>{{ product.shipping_cost_jpy|floatformat:0 }}円</dd>
-                <dt>eBay手数料</dt><dd>{{ product.ebay_fee_jpy|floatformat:0 }}円 ({{ product.ebay_fee_rate }}%)</dd>
+                <dt>販売手数料</dt><dd>{{ product.ebay_fee_jpy|floatformat:0 }}円 ({{ product.ebay_fee_rate }}%)</dd>
                 <dt>その他コスト</dt><dd>{{ product.other_cost_jpy|floatformat:0 }}円</dd>
             </dl>
         </div>
@@ -98,10 +99,10 @@
         <div class="analytics-panel">
             <h2 class="h5 fw-bold mb-3">実績</h2>
             <dl class="detail-grid">
-                <dt>実売価格</dt><dd>{% if product.actual_sale_price_usd %}${{ product.actual_sale_price_usd }} / {{ product.actual_sale_price_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
+                <dt>実売価格</dt><dd>{% if product.actual_sale_price_jpy != None %}{% if product.actual_sale_price_usd %}${{ product.actual_sale_price_usd }} / {% endif %}{{ product.actual_sale_price_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
                 <dt>実為替</dt><dd>{{ product.actual_exchange_rate|default:"-" }}</dd>
                 <dt>実送料</dt><dd>{% if product.actual_shipping_cost_jpy != None %}{{ product.actual_shipping_cost_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
-                <dt>実eBay手数料</dt><dd>{% if product.actual_fee_for_profit_jpy != None %}{{ product.actual_fee_for_profit_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
+                <dt>実販売手数料</dt><dd>{% if product.actual_fee_for_profit_jpy != None %}{{ product.actual_fee_for_profit_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
                 <dt>想定との差</dt><dd>{% if product.profit_gap_jpy != None %}{{ product.profit_gap_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
             </dl>
         </div>
@@ -110,7 +111,7 @@
         <div class="analytics-panel">
             <h2 class="h5 fw-bold mb-3">リンク・メモ</h2>
             <dl class="detail-grid">
-                <dt>eBay URL</dt><dd>{% if product.listing_url %}<a href="{{ product.listing_url }}" target="_blank" rel="noopener">開く</a>{% else %}-{% endif %}</dd>
+                <dt>販売ページURL</dt><dd>{% if product.listing_url %}<a href="{{ product.listing_url }}" target="_blank" rel="noopener">開く</a>{% else %}-{% endif %}</dd>
                 <dt>仕入れ元URL</dt><dd>{% if product.purchase_url %}<a href="{{ product.purchase_url }}" target="_blank" rel="noopener">開く</a>{% else %}-{% endif %}</dd>
                 <dt>メモ</dt><dd>{{ product.memo|linebreaksbr|default:"-" }}</dd>
             </dl>

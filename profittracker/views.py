@@ -87,24 +87,32 @@ class ProductListView(OwnerQuerysetMixin, ListView):
         fee_multiplier = Decimal("1") - product.ebay_fee_rate / Decimal("100")
         breakeven_jpy = None
         breakeven_usd = None
+        target_sale_jpy = None
         target_sale_usd = None
 
         if fee_multiplier > 0 and product.exchange_rate > 0:
             breakeven_jpy = self.yen(Decimal(total_cost_jpy) / fee_multiplier)
-            breakeven_usd = (Decimal(breakeven_jpy) / product.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            if product.sales_channel == Product.SalesChannel.EBAY:
+                breakeven_usd = (Decimal(breakeven_jpy) / product.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             target_multiplier = fee_multiplier - target_profit_rate / Decimal("100")
             if target_multiplier > 0:
-                target_sale_jpy = Decimal(total_cost_jpy) / target_multiplier
-                target_sale_usd = (target_sale_jpy / product.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                target_sale_jpy = self.yen(Decimal(total_cost_jpy) / target_multiplier)
+                if product.sales_channel == Product.SalesChannel.EBAY:
+                    target_sale_usd = (Decimal(target_sale_jpy) / product.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
         def discount_snapshot(percent):
-            sale_price_usd = (product.expected_sale_price_usd * (Decimal("100") - Decimal(percent)) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            sale_price_jpy = self.yen(sale_price_usd * product.exchange_rate)
+            sale_price_usd = None
+            if product.expected_sale_price_usd is not None and product.sales_channel == Product.SalesChannel.EBAY:
+                sale_price_usd = (product.expected_sale_price_usd * (Decimal("100") - Decimal(percent)) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                sale_price_jpy = self.yen(sale_price_usd * product.exchange_rate)
+            else:
+                sale_price_jpy = self.yen(Decimal(product.sale_price_jpy) * (Decimal("100") - Decimal(percent)) / Decimal("100"))
             ebay_fee_jpy = self.yen(Decimal(sale_price_jpy) * product.ebay_fee_rate / Decimal("100"))
             profit_jpy = sale_price_jpy - ebay_fee_jpy - total_cost_jpy
             return {
                 "percent": percent,
                 "sale_price_usd": sale_price_usd,
+                "sale_price_jpy": sale_price_jpy,
                 "profit_jpy": profit_jpy,
             }
 
@@ -135,6 +143,7 @@ class ProductListView(OwnerQuerysetMixin, ListView):
             "total_cost_jpy": total_cost_jpy,
             "breakeven_jpy": breakeven_jpy,
             "breakeven_usd": breakeven_usd,
+            "target_sale_jpy": target_sale_jpy,
             "target_sale_usd": target_sale_usd,
             "discount_10": discount_10,
             "discount_20": discount_20,
@@ -442,7 +451,9 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
         for field in [
             "title",
             "purchase_price_jpy",
+            "sales_channel",
             "expected_sale_price_usd",
+            "expected_sale_price_jpy",
             "shipping_cost_jpy",
             "exchange_rate",
             "ebay_fee_rate",
@@ -500,7 +511,9 @@ class ProductCsvExportView(LoginRequiredMixin, View):
         "purchase_price_jpy",
         "purchase_shipping_jpy",
         "other_cost_jpy",
+        "sales_channel",
         "expected_sale_price_usd",
+        "expected_sale_price_jpy",
         "shipping_cost_jpy",
         "exchange_rate",
         "ebay_fee_rate",
@@ -509,6 +522,7 @@ class ProductCsvExportView(LoginRequiredMixin, View):
         "sold_date",
         "shipped_date",
         "actual_sale_price_usd",
+        "actual_sale_price_jpy_manual",
         "actual_exchange_rate",
         "actual_shipping_cost_jpy",
         "actual_ebay_fee_jpy",
@@ -550,7 +564,9 @@ class ProductCsvImportView(LoginRequiredMixin, FormView):
         "purchase_price_jpy",
         "purchase_shipping_jpy",
         "other_cost_jpy",
+        "expected_sale_price_jpy",
         "shipping_cost_jpy",
+        "actual_sale_price_jpy_manual",
         "actual_shipping_cost_jpy",
         "actual_ebay_fee_jpy",
     }

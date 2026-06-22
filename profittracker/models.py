@@ -33,6 +33,11 @@ class SellerSettings(models.Model):
 
 
 class Product(models.Model):
+    class SalesChannel(models.TextChoices):
+        EBAY = "ebay", "eBay"
+        MERCARI = "mercari", "メルカリ"
+        OTHER = "other", "その他"
+
     class Status(models.TextChoices):
         PURCHASED = "purchased", "仕入れ済み"
         LISTED = "listed", "出品中"
@@ -61,19 +66,22 @@ class Product(models.Model):
     purchase_price_jpy = models.PositiveIntegerField("仕入価格")
     purchase_shipping_jpy = models.PositiveIntegerField("仕入れ時送料", default=0)
     other_cost_jpy = models.PositiveIntegerField("その他コスト", default=0)
-    expected_sale_price_usd = models.DecimalField("想定売価USD", max_digits=10, decimal_places=2)
+    sales_channel = models.CharField("販売チャネル", max_length=20, choices=SalesChannel.choices, default=SalesChannel.EBAY)
+    expected_sale_price_usd = models.DecimalField("想定売価USD", max_digits=10, decimal_places=2, null=True, blank=True)
+    expected_sale_price_jpy = models.PositiveIntegerField("想定売価JPY", null=True, blank=True)
     shipping_cost_jpy = models.PositiveIntegerField("送料")
     exchange_rate = models.DecimalField("為替", max_digits=8, decimal_places=2)
-    ebay_fee_rate = models.DecimalField("eBay手数料率", max_digits=5, decimal_places=2, default=Decimal("15.00"))
+    ebay_fee_rate = models.DecimalField("販売手数料率", max_digits=5, decimal_places=2, default=Decimal("15.00"))
     purchase_date = models.DateField("仕入れ日", null=True, blank=True)
     listed_date = models.DateField("出品日", null=True, blank=True)
     sold_date = models.DateField("売却日", null=True, blank=True)
     shipped_date = models.DateField("発送日", null=True, blank=True)
     actual_sale_price_usd = models.DecimalField("実売価格USD", max_digits=10, decimal_places=2, null=True, blank=True)
+    actual_sale_price_jpy_manual = models.PositiveIntegerField("実売価格JPY", null=True, blank=True)
     actual_exchange_rate = models.DecimalField("実際の為替", max_digits=8, decimal_places=2, null=True, blank=True)
     actual_shipping_cost_jpy = models.PositiveIntegerField("実送料", null=True, blank=True)
-    actual_ebay_fee_jpy = models.PositiveIntegerField("実eBay手数料", null=True, blank=True)
-    listing_url = models.URLField("eBay出品URL", blank=True)
+    actual_ebay_fee_jpy = models.PositiveIntegerField("実販売手数料", null=True, blank=True)
+    listing_url = models.URLField("販売ページURL", blank=True)
     purchase_url = models.URLField("仕入れ元URL", blank=True)
     image_url = models.URLField("商品画像URL", blank=True)
     buyer_country = models.CharField("販売先国", max_length=100, blank=True)
@@ -100,11 +108,9 @@ class Product(models.Model):
 
     @property
     def sale_price_jpy(self):
-        return self.yen(self.expected_sale_price_usd * self.exchange_rate)
-
-    @property
-    def expected_sale_price_jpy(self):
-        return self.sale_price_jpy
+        if self.sales_channel == self.SalesChannel.EBAY and self.expected_sale_price_usd is not None:
+            return self.yen(self.expected_sale_price_usd * self.exchange_rate)
+        return self.expected_sale_price_jpy or 0
 
     @property
     def ebay_fee_jpy(self):
@@ -139,6 +145,8 @@ class Product(models.Model):
 
     @property
     def actual_sale_price_jpy(self):
+        if self.actual_sale_price_jpy_manual is not None:
+            return self.actual_sale_price_jpy_manual
         if self.actual_sale_price_usd is None:
             return None
         rate = self.actual_exchange_rate or self.exchange_rate

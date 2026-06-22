@@ -55,7 +55,7 @@ class ProductCalculationTests(TestCase):
     def test_product_form_initial_ebay_fee_rate_is_15_percent(self):
         form = ProductForm()
         self.assertEqual(form.fields["ebay_fee_rate"].initial, Decimal("15.00"))
-        self.assertIn("15%", form.fields["actual_ebay_fee_jpy"].help_text)
+        self.assertIn("販売手数料率", form.fields["actual_ebay_fee_jpy"].help_text)
 
     def test_product_form_accepts_expected_sale_price_jpy_input(self):
         form = ProductForm(
@@ -66,8 +66,9 @@ class ProductCalculationTests(TestCase):
                 "purchase_price_jpy": "7000",
                 "purchase_shipping_jpy": "0",
                 "other_cost_jpy": "0",
+                "sales_channel": Product.SalesChannel.EBAY,
                 "expected_sale_price_usd": "",
-                "expected_sale_price_jpy_input": "15500",
+                "expected_sale_price_jpy": "15500",
                 "shipping_cost_jpy": "2500",
                 "exchange_rate": "155.00",
                 "ebay_fee_rate": "15.00",
@@ -77,6 +78,7 @@ class ProductCalculationTests(TestCase):
 
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.cleaned_data["expected_sale_price_usd"], Decimal("100.00"))
+        self.assertEqual(form.cleaned_data["expected_sale_price_jpy"], 15500)
 
     def test_product_form_initializes_expected_sale_price_jpy_input(self):
         user = get_user_model().objects.create_user(username="jpy-seller", password="pass")
@@ -91,7 +93,36 @@ class ProductCalculationTests(TestCase):
 
         form = ProductForm(instance=product)
 
-        self.assertEqual(form.initial["expected_sale_price_jpy_input"], 15500)
+        self.assertEqual(form.initial["expected_sale_price_jpy"], 15500)
+
+    def test_mercari_product_uses_jpy_sale_price_and_10_percent_fee(self):
+        form = ProductForm(
+            data={
+                "title": "Mercari Item",
+                "condition": Product.Condition.USED,
+                "quantity": "1",
+                "purchase_price_jpy": "7000",
+                "purchase_shipping_jpy": "0",
+                "other_cost_jpy": "0",
+                "sales_channel": Product.SalesChannel.MERCARI,
+                "expected_sale_price_usd": "",
+                "expected_sale_price_jpy": "12000",
+                "shipping_cost_jpy": "1000",
+                "exchange_rate": "",
+                "ebay_fee_rate": "15.00",
+                "status": Product.Status.PURCHASED,
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        product = form.save(commit=False)
+        product.owner = get_user_model().objects.create_user(username="mercari-seller", password="pass")
+        self.assertEqual(product.expected_sale_price_usd, None)
+        self.assertEqual(product.exchange_rate, Decimal("1.00"))
+        self.assertEqual(product.ebay_fee_rate, Decimal("10.00"))
+        self.assertEqual(product.sale_price_jpy, 12000)
+        self.assertEqual(product.ebay_fee_jpy, 1200)
+        self.assertEqual(product.expected_profit_jpy, 2800)
 
     def test_actual_ebay_fee_defaults_to_15_percent_estimate_when_blank(self):
         product = Product(

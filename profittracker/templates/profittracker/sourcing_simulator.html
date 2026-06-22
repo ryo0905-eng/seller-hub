@@ -74,7 +74,7 @@
             <div class="analytics-panel">
                 <h2 class="h5 fw-bold mb-3">判断材料</h2>
                 <dl class="detail-grid">
-                    <dt>eBay手数料</dt><dd>{{ result.ebay_fee_jpy|floatformat:0 }}円</dd>
+                    <dt>販売手数料</dt><dd>{{ result.ebay_fee_jpy|floatformat:0 }}円</dd>
                     <dt>上限仕入価格</dt><dd class="{% if result.max_purchase_price_jpy < 0 %}text-danger{% else %}text-success{% endif %} fw-bold">{{ result.max_purchase_price_jpy|floatformat:0 }}円</dd>
                     <dt>ROI基準の上限</dt><dd>{{ result.max_purchase_by_roi_jpy|floatformat:0 }}円</dd>
                     <dt>利益率基準の上限</dt><dd>{{ result.max_purchase_by_profit_rate_jpy|floatformat:0 }}円</dd>

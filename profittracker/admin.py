@@ -21,12 +21,15 @@ class ProductAdmin(admin.ModelAdmin):
         "sku",
         "title",
         "owner",
+        "sales_channel",
         "status",
         "condition",
         "purchase_price_jpy",
         "expected_sale_price_usd",
+        "expected_sale_price_jpy",
         "expected_profit_jpy",
         "actual_sale_price_usd",
+        "actual_sale_price_jpy_manual",
         "actual_profit_jpy",
         "profit_gap_jpy",
         "days_to_sell",
@@ -34,7 +37,7 @@ class ProductAdmin(admin.ModelAdmin):
         "roi",
         "updated_at",
     )
-    list_filter = ("status", "condition", "category", "brand", "source", "buyer_country")
+    list_filter = ("sales_channel", "status", "condition", "category", "brand", "source", "buyer_country")
     search_fields = (
         "sku",
         "title",
@@ -65,7 +68,7 @@ class ProductAdmin(admin.ModelAdmin):
         "updated_at",
     )
     fieldsets = (
-        ("基本情報", {"fields": ("owner", "sku", "title", "brand", "category", "condition", "quantity", "source", "status")}),
+        ("基本情報", {"fields": ("owner", "sku", "title", "brand", "category", "condition", "quantity", "source", "sales_channel", "status")}),
         (
             "想定利益",
             {
@@ -74,6 +77,7 @@ class ProductAdmin(admin.ModelAdmin):
                     "purchase_shipping_jpy",
                     "other_cost_jpy",
                     "expected_sale_price_usd",
+                    "expected_sale_price_jpy",
                     "shipping_cost_jpy",
                     "exchange_rate",
                     "ebay_fee_rate",
@@ -94,6 +98,7 @@ class ProductAdmin(admin.ModelAdmin):
                     "sold_date",
                     "shipped_date",
                     "actual_sale_price_usd",
+                    "actual_sale_price_jpy_manual",
                     "actual_exchange_rate",
                     "actual_shipping_cost_jpy",
                     "actual_ebay_fee_jpy",

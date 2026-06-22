@@ -90,6 +90,7 @@
                             {% endif %}
                             <div class="min-w-0">
                                 <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                    <span class="badge channel-badge channel-{{ product.sales_channel }}">{{ product.get_sales_channel_display }}</span>
                                     <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
                                     <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
                                 </div>
@@ -111,8 +112,14 @@
                             </div>
                             <div class="summary-tile">
                                 <span>現在売価</span>
-                                <strong>${{ product.expected_sale_price_usd }}</strong>
-                                <small>{{ product.sale_price_jpy|floatformat:0 }}円</small>
+                                <strong>
+                                    {% if product.sales_channel == "ebay" and product.expected_sale_price_usd != None %}
+                                        ${{ product.expected_sale_price_usd }}
+                                    {% else %}
+                                        {{ product.sale_price_jpy|floatformat:0 }}円
+                                    {% endif %}
+                                </strong>
+                                <small>{% if product.sales_channel == "ebay" %}{{ product.sale_price_jpy|floatformat:0 }}円{% else %}{{ product.ebay_fee_rate }}%手数料{% endif %}</small>
                             </div>
                             <div class="summary-tile">
                                 <span>想定利益</span>
@@ -123,7 +130,7 @@
                             </div>
                             <div class="summary-tile">
                                 <span>損益分岐売価</span>
-                                <strong>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% else %}-{% endif %}</strong>
+                                <strong>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% elif pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円{% else %}-{% endif %}</strong>
                                 <small>{% if pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円以上で黒字{% else %}計算不可{% endif %}</small>
                             </div>
                         </div>
@@ -134,18 +141,18 @@
                                 <strong class="{% if pricing.discount_10.profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
                                     {% if pricing.discount_10.profit_jpy > 0 %}+{% endif %}{{ pricing.discount_10.profit_jpy|floatformat:0 }}円
                                 </strong>
-                                <small>${{ pricing.discount_10.sale_price_usd }}</small>
+                                <small>{% if pricing.discount_10.sale_price_usd != None %}${{ pricing.discount_10.sale_price_usd }}{% else %}{{ pricing.discount_10.sale_price_jpy|floatformat:0 }}円{% endif %}</small>
                             </div>
                             <div class="price-sim">
                                 <span>20%値下げ</span>
                                 <strong class="{% if pricing.discount_20.profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
                                     {% if pricing.discount_20.profit_jpy > 0 %}+{% endif %}{{ pricing.discount_20.profit_jpy|floatformat:0 }}円
                                 </strong>
-                                <small>${{ pricing.discount_20.sale_price_usd }}</small>
+                                <small>{% if pricing.discount_20.sale_price_usd != None %}${{ pricing.discount_20.sale_price_usd }}{% else %}{{ pricing.discount_20.sale_price_jpy|floatformat:0 }}円{% endif %}</small>
                             </div>
                             <div class="price-sim">
                                 <span>目標利益率売価</span>
-                                <strong>{% if pricing.target_sale_usd != None %}${{ pricing.target_sale_usd }}{% else %}-{% endif %}</strong>
+                                <strong>{% if pricing.target_sale_usd != None %}${{ pricing.target_sale_usd }}{% elif pricing.target_sale_jpy != None %}{{ pricing.target_sale_jpy|floatformat:0 }}円{% else %}-{% endif %}</strong>
                                 <small>目標ライン</small>
                             </div>
                             <div class="price-sim">

@@ -423,6 +423,27 @@ main.container {
     color: #8a5a00;
 }
 
+.channel-badge {
+    border-radius: 999px;
+    font-weight: 850;
+    padding: 0.48rem 0.68rem;
+}
+
+.channel-ebay {
+    background: #fff7db;
+    color: #8a5a00;
+}
+
+.channel-mercari {
+    background: #fdecec;
+    color: #b42318;
+}
+
+.channel-other {
+    background: #eef2f7;
+    color: #394150;
+}
+
 .app-card,
 .product-card {
     border: 1px solid var(--app-border);
