@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}仕入れ判断 - eBay Profit Tracker{% endblock %}
+
+{% block content %}
+<div class="page-hero d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center mb-4">
+    <div>
+        <div class="eyebrow">Sourcing Simulator</div>
+        <h1 class="h2 fw-bold mb-2">仕入れ判断</h1>
+        <p class="text-muted mb-0">仕入れ前に利益、ROI、上限仕入価格を計算して、買ってよいかを判断します。</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">商品一覧へ</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-xl-5">
+        <form method="post" class="card app-card">
+            {% csrf_token %}
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3">条件入力</h2>
+                <div class="row g-3 compact-form-grid">
+                    {% for field in form %}
+                        <div class="{% if field.name == 'title' %}col-12{% else %}col-12 col-md-6{% endif %}">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer form-actions d-flex justify-content-end">
+                <button class="btn btn-primary-action" type="submit">判定する</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-12 col-xl-7">
+        {% if result %}
+            <div class="decision-card decision-{{ result.decision_class }} mb-3">
+                <div>
+                    <span>判定</span>
+                    <strong>{{ result.decision }}</strong>
+                    <p>{{ result.decision_message }}</p>
+                </div>
+                <a class="btn btn-primary-action" href="{% url 'product_create' %}?title={{ register_params.title|urlencode }}&purchase_price_jpy={{ register_params.purchase_price_jpy }}&expected_sale_price_usd={{ register_params.expected_sale_price_usd }}&shipping_cost_jpy={{ register_params.shipping_cost_jpy }}&exchange_rate={{ register_params.exchange_rate }}&ebay_fee_rate={{ register_params.ebay_fee_rate }}">商品登録へ引き継ぐ</a>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-6 col-lg-4">
+                    <div class="metric">
+                        <span>想定利益</span>
+                        <strong class="{% if result.profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">{{ result.profit_jpy|floatformat:0 }}円</strong>
+                        <small>{{ result.profit_rate }}%</small>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-4">
+                    <div class="metric">
+                        <span>ROI</span>
+                        <strong>{{ result.roi }}%</strong>
+                        <small>投資利益率</small>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-4">
+                    <div class="metric">
+                        <span>売価JPY</span>
+                        <strong>{{ result.sale_price_jpy|floatformat:0 }}円</strong>
+                        <small>想定売価</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-panel">
+                <h2 class="h5 fw-bold mb-3">判断材料</h2>
+                <dl class="detail-grid">
+                    <dt>eBay手数料</dt><dd>{{ result.ebay_fee_jpy|floatformat:0 }}円</dd>
+                    <dt>上限仕入価格</dt><dd class="{% if result.max_purchase_price_jpy < 0 %}text-danger{% else %}text-success{% endif %} fw-bold">{{ result.max_purchase_price_jpy|floatformat:0 }}円</dd>
+                    <dt>目標利益に必要な売価</dt><dd>{% if result.needed_sale_price_usd %}${{ result.needed_sale_price_usd }}{% else %}-{% endif %}</dd>
+                </dl>
+            </div>
+        {% else %}
+            <div class="empty-state h-100 d-flex flex-column justify-content-center">
+                <h2 class="h4 fw-bold">条件を入力してください</h2>
+                <p class="text-muted mb-0">判定すると、利益・ROI・上限仕入価格が表示されます。</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

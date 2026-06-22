@@ -685,6 +685,63 @@ main.container {
     overflow-wrap: anywhere;
 }
 
+.decision-card {
+    align-items: center;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    box-shadow: var(--app-shadow-soft);
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.decision-card span {
+    color: var(--app-muted);
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.decision-card strong {
+    display: block;
+    font-size: 2rem;
+    line-height: 1.1;
+}
+
+.decision-card p {
+    color: #4b5563;
+    margin: 6px 0 0;
+}
+
+.decision-success {
+    background: linear-gradient(135deg, #ecfdf5, #ffffff);
+    border-color: rgba(17, 132, 91, 0.24);
+}
+
+.decision-success strong {
+    color: var(--app-green);
+}
+
+.decision-warning {
+    background: linear-gradient(135deg, #fffaf0, #ffffff);
+    border-color: rgba(245, 179, 1, 0.34);
+}
+
+.decision-warning strong {
+    color: #9a6700;
+}
+
+.decision-danger {
+    background: linear-gradient(135deg, #fff5f5, #ffffff);
+    border-color: rgba(217, 45, 32, 0.24);
+}
+
+.decision-danger strong {
+    color: var(--app-red);
+}
+
 .empty-state {
     background: var(--app-surface);
     border: 1px dashed #c9ced6;

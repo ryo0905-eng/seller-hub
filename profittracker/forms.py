@@ -1,4 +1,5 @@
 from django import forms
+from decimal import Decimal
 
 from .models import Product
 
@@ -87,3 +88,19 @@ class ProductCsvImportForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["csv_file"].widget.attrs["class"] = "form-control"
+
+
+class SourcingSimulatorForm(forms.Form):
+    title = forms.CharField(label="商品名", max_length=200, required=False)
+    expected_sale_price_usd = forms.DecimalField(label="想定売価USD", max_digits=10, decimal_places=2, min_value=Decimal("0.01"))
+    purchase_price_jpy = forms.IntegerField(label="仕入価格", min_value=0)
+    shipping_cost_jpy = forms.IntegerField(label="送料", min_value=0, initial=0)
+    exchange_rate = forms.DecimalField(label="為替", max_digits=8, decimal_places=2, min_value=Decimal("0.01"))
+    ebay_fee_rate = forms.DecimalField(label="eBay手数料率", max_digits=5, decimal_places=2, min_value=0, initial=Decimal("15.00"))
+    target_profit_jpy = forms.IntegerField(label="目標利益額", min_value=0, initial=3000)
+    target_profit_rate = forms.DecimalField(label="目標利益率", max_digits=5, decimal_places=1, min_value=0, initial=Decimal("20.0"))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs["class"] = "form-control"

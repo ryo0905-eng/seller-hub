@@ -137,6 +137,53 @@ class ProductViewTests(TestCase):
         response = self.client.get(reverse("analytics"))
         self.assertEqual(response.status_code, 302)
 
+    def test_sourcing_simulator_requires_login(self):
+        response = self.client.get(reverse("sourcing_simulator"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_sourcing_simulator_calculates_decision(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("sourcing_simulator"),
+            {
+                "title": "Research Item",
+                "expected_sale_price_usd": "100.00",
+                "purchase_price_jpy": "7000",
+                "shipping_cost_jpy": "2500",
+                "exchange_rate": "155.00",
+                "ebay_fee_rate": "15.00",
+                "target_profit_jpy": "3000",
+                "target_profit_rate": "20.0",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "判定")
+        self.assertContains(response, "商品登録へ引き継ぐ")
+        self.assertContains(response, "上限仕入価格")
+
+    def test_product_create_accepts_simulator_initial_values(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        self.client.force_login(user)
+
+        response = self.client.get(
+            reverse("product_create"),
+            {
+                "title": "Research Item",
+                "purchase_price_jpy": "7000",
+                "expected_sale_price_usd": "100.00",
+                "shipping_cost_jpy": "2500",
+                "exchange_rate": "155.00",
+                "ebay_fee_rate": "15.00",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Research Item")
+        self.assertContains(response, "100.00")
+
     def test_analytics_renders_charts_and_insights(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")
         Product.objects.create(

@@ -28,6 +28,7 @@
                 {% if user.is_authenticated %}
                     <a class="nav-link" href="{% url 'product_list' %}">商品一覧</a>
                     <a class="nav-link" href="{% url 'analytics' %}">分析</a>
+                    <a class="nav-link" href="{% url 'sourcing_simulator' %}">仕入れ判断</a>
                     <a class="btn btn-primary-action btn-sm" href="{% url 'product_create' %}">商品登録</a>
                     {% if user.is_staff %}
                         <a class="nav-link" href="{% url 'admin:index' %}">管理画面</a>
