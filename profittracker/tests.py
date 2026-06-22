@@ -174,6 +174,7 @@ class ProductViewTests(TestCase):
                 "default_target_profit_rate": "25.0",
                 "default_target_roi": "40.0",
                 "default_shipping_cost_jpy": "1800",
+                "default_exchange_rate": "158.25",
                 "default_ebay_fee_rate": "16.00",
             },
         )
@@ -183,10 +184,12 @@ class ProductViewTests(TestCase):
         self.assertEqual(settings.default_target_profit_rate, Decimal("25.0"))
         self.assertEqual(settings.default_target_roi, Decimal("40.0"))
         self.assertEqual(settings.default_shipping_cost_jpy, 1800)
+        self.assertEqual(settings.default_exchange_rate, Decimal("158.25"))
         self.assertEqual(settings.default_ebay_fee_rate, Decimal("16.00"))
 
         simulator_response = self.client.get(reverse("sourcing_simulator"))
         self.assertContains(simulator_response, 'value="1800"')
+        self.assertContains(simulator_response, 'value="158.25"')
         self.assertContains(simulator_response, 'value="16.00"')
         self.assertContains(simulator_response, 'value="25.0"')
         self.assertContains(simulator_response, 'value="40.0"')
@@ -196,6 +199,7 @@ class ProductViewTests(TestCase):
         SellerSettings.objects.create(
             owner=user,
             default_shipping_cost_jpy=2200,
+            default_exchange_rate=Decimal("159.50"),
             default_ebay_fee_rate=Decimal("16.50"),
         )
         self.client.force_login(user)
@@ -204,6 +208,7 @@ class ProductViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'name="shipping_cost_jpy" value="2200"')
+        self.assertContains(response, 'name="exchange_rate" value="159.50"')
         self.assertContains(response, 'name="ebay_fee_rate" value="16.50"')
 
     def test_product_create_accepts_simulator_initial_values(self):

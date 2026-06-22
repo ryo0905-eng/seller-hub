@@ -16,6 +16,7 @@ class SellerSettings(models.Model):
     default_target_profit_rate = models.DecimalField("デフォルト目標利益率", max_digits=5, decimal_places=1, default=Decimal("20.0"))
     default_target_roi = models.DecimalField("デフォルト目標ROI", max_digits=5, decimal_places=1, default=Decimal("30.0"))
     default_shipping_cost_jpy = models.PositiveIntegerField("デフォルト送料", default=0)
+    default_exchange_rate = models.DecimalField("デフォルト為替", max_digits=8, decimal_places=2, default=Decimal("150.00"))
     default_ebay_fee_rate = models.DecimalField("デフォルトeBay手数料率", max_digits=5, decimal_places=2, default=Decimal("15.00"))
 
     class Meta:

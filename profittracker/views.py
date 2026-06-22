@@ -285,7 +285,7 @@ class SourcingSimulatorView(LoginRequiredMixin, FormView):
         seller_settings = SellerSettings.get_for_user(self.request.user)
         initial.update(
             {
-                "exchange_rate": self.request.GET.get("exchange_rate", ""),
+                "exchange_rate": self.request.GET.get("exchange_rate", seller_settings.default_exchange_rate),
                 "shipping_cost_jpy": seller_settings.default_shipping_cost_jpy,
                 "ebay_fee_rate": self.request.GET.get("ebay_fee_rate", seller_settings.default_ebay_fee_rate),
                 "target_profit_rate": seller_settings.default_target_profit_rate,
@@ -338,6 +338,7 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
         initial.update(
             {
                 "shipping_cost_jpy": seller_settings.default_shipping_cost_jpy,
+                "exchange_rate": seller_settings.default_exchange_rate,
                 "ebay_fee_rate": seller_settings.default_ebay_fee_rate,
             }
         )

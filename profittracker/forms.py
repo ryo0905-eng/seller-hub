@@ -118,6 +118,7 @@ class SellerSettingsForm(forms.ModelForm):
             "default_target_profit_rate",
             "default_target_roi",
             "default_shipping_cost_jpy",
+            "default_exchange_rate",
             "default_ebay_fee_rate",
         ]
 
