@@ -48,4 +48,27 @@ profit_rate = profit_jpy / sale_price_jpy * 100
 
 ## Render向けメモ
 
-`DEBUG=0`、`SECRET_KEY`、`ALLOWED_HOSTS` をRenderの環境変数に設定してください。起動コマンドは `gunicorn ebay_profit_tracker.wsgi:application` です。
+`DATABASE_URL` がある場合はPostgreSQLを使い、未設定ならローカルSQLiteを使います。
+
+RenderではPostgreSQLを作成し、Web Serviceに以下の環境変数を設定してください。
+
+```text
+DEBUG=0
+SECRET_KEY=<強いランダム文字列>
+ALLOWED_HOSTS=<your-service>.onrender.com
+CSRF_TRUSTED_ORIGINS=https://<your-service>.onrender.com
+DATABASE_URL=<Render PostgreSQL の Internal Database URL>
+```
+
+Renderのコマンド例:
+
+```text
+Build Command: ./build.sh
+Start Command: gunicorn ebay_profit_tracker.wsgi:application
+```
+
+初回デプロイ後はRender Shellで管理ユーザーを作成してください。
+
+```bash
+python manage.py createsuperuser
+```
