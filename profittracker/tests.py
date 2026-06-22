@@ -57,6 +57,42 @@ class ProductCalculationTests(TestCase):
         self.assertEqual(form.fields["ebay_fee_rate"].initial, Decimal("15.00"))
         self.assertIn("15%", form.fields["actual_ebay_fee_jpy"].help_text)
 
+    def test_product_form_accepts_expected_sale_price_jpy_input(self):
+        form = ProductForm(
+            data={
+                "title": "JPY Sale Item",
+                "condition": Product.Condition.USED,
+                "quantity": "1",
+                "purchase_price_jpy": "7000",
+                "purchase_shipping_jpy": "0",
+                "other_cost_jpy": "0",
+                "expected_sale_price_usd": "",
+                "expected_sale_price_jpy_input": "15500",
+                "shipping_cost_jpy": "2500",
+                "exchange_rate": "155.00",
+                "ebay_fee_rate": "15.00",
+                "status": Product.Status.PURCHASED,
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["expected_sale_price_usd"], Decimal("100.00"))
+
+    def test_product_form_initializes_expected_sale_price_jpy_input(self):
+        user = get_user_model().objects.create_user(username="jpy-seller", password="pass")
+        product = Product.objects.create(
+            owner=user,
+            title="Existing JPY Item",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("100.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("155.00"),
+        )
+
+        form = ProductForm(instance=product)
+
+        self.assertEqual(form.initial["expected_sale_price_jpy_input"], 15500)
+
     def test_actual_ebay_fee_defaults_to_15_percent_estimate_when_blank(self):
         product = Product(
             owner=get_user_model().objects.create_user(username="seller", password="pass"),

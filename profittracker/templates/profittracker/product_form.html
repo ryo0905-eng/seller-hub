@@ -37,6 +37,7 @@
                         {% include "profittracker/partials/form_field.html" with field=form.status %}
                         {% include "profittracker/partials/form_field.html" with field=form.purchase_price_jpy %}
                         {% include "profittracker/partials/form_field.html" with field=form.expected_sale_price_usd %}
+                        {% include "profittracker/partials/form_field.html" with field=form.expected_sale_price_jpy_input %}
                         {% include "profittracker/partials/form_field.html" with field=form.shipping_cost_jpy %}
                         {% include "profittracker/partials/exchange_rate_field.html" with field=form.exchange_rate %}
                         {% include "profittracker/partials/form_field.html" with field=form.ebay_fee_rate %}
@@ -116,4 +117,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/exchange_rate.js' %}"></script>
+<script src="{% static 'js/sale_price_converter.js' %}"></script>
 {% endblock %}

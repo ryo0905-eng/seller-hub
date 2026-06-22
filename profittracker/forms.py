@@ -1,10 +1,17 @@
 from django import forms
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from .models import Product, SellerSettings
 
 
 class ProductForm(forms.ModelForm):
+    expected_sale_price_jpy_input = forms.IntegerField(
+        label="想定売価JPY",
+        min_value=1,
+        required=False,
+        help_text="円で入力すると、為替を使ってUSDへ自動換算します。",
+    )
+
     class Meta:
         model = Product
         fields = [
@@ -51,9 +58,59 @@ class ProductForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["expected_sale_price_usd"].required = False
+        self.fields["expected_sale_price_usd"].help_text = "USDまたはJPYのどちらかを入力してください。"
+        self.fields["expected_sale_price_usd"].widget.attrs["data-sale-price-usd"] = "true"
+        self.fields["expected_sale_price_jpy_input"].widget.attrs["data-sale-price-jpy"] = "true"
+        self.fields["exchange_rate"].widget.attrs["data-sale-price-exchange-rate"] = "true"
+
+        if not self.is_bound:
+            self.set_initial_expected_sale_price_jpy()
+
         for field in self.fields.values():
             css = "form-select" if isinstance(field.widget, forms.Select) else "form-control"
             field.widget.attrs["class"] = css
+
+    @staticmethod
+    def yen(value):
+        return int(Decimal(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+    def set_initial_expected_sale_price_jpy(self):
+        if self.initial.get("expected_sale_price_jpy_input"):
+            return
+
+        usd = self.initial.get("expected_sale_price_usd")
+        rate = self.initial.get("exchange_rate")
+        if usd is None and self.instance and self.instance.pk:
+            usd = self.instance.expected_sale_price_usd
+        if rate is None and self.instance and self.instance.pk:
+            rate = self.instance.exchange_rate
+
+        if usd in (None, "") or rate in (None, ""):
+            return
+
+        try:
+            self.initial["expected_sale_price_jpy_input"] = self.yen(Decimal(str(usd)) * Decimal(str(rate)))
+        except (InvalidOperation, TypeError, ValueError):
+            return
+
+    def clean(self):
+        cleaned_data = super().clean()
+        usd = cleaned_data.get("expected_sale_price_usd")
+        jpy = cleaned_data.get("expected_sale_price_jpy_input")
+        exchange_rate = cleaned_data.get("exchange_rate")
+
+        if usd is None and jpy is None:
+            self.add_error("expected_sale_price_usd", "想定売価はUSDまたはJPYのどちらかを入力してください。")
+            return cleaned_data
+
+        if usd is None and jpy is not None:
+            if exchange_rate is None:
+                self.add_error("exchange_rate", "JPYから換算するには為替を入力してください。")
+                return cleaned_data
+            cleaned_data["expected_sale_price_usd"] = (Decimal(jpy) / exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+        return cleaned_data
 
 
 class ProductQuickUpdateForm(forms.ModelForm):
