@@ -18,7 +18,6 @@ class ProductForm(forms.ModelForm):
             "purchase_price_jpy",
             "purchase_shipping_jpy",
             "other_cost_jpy",
-            "sales_channel",
             "expected_sale_price_usd",
             "expected_sale_price_jpy",
             "shipping_cost_jpy",
@@ -28,6 +27,7 @@ class ProductForm(forms.ModelForm):
             "listed_date",
             "sold_date",
             "shipped_date",
+            "actual_sales_channel",
             "actual_sale_price_usd",
             "actual_sale_price_jpy_manual",
             "actual_exchange_rate",
@@ -57,9 +57,8 @@ class ProductForm(forms.ModelForm):
         self.fields["expected_sale_price_usd"].required = False
         self.fields["expected_sale_price_jpy"].required = False
         self.fields["exchange_rate"].required = False
-        self.fields["sales_channel"].widget.attrs["data-sales-channel"] = "true"
-        self.fields["expected_sale_price_usd"].help_text = "eBayはUSD入力が便利です。メルカリはJPY入力を使ってください。"
-        self.fields["expected_sale_price_jpy"].help_text = "メルカリ販売ではこの円売価をそのまま利益計算に使います。"
+        self.fields["expected_sale_price_usd"].help_text = "USDで考える商品だけ入力してください。"
+        self.fields["expected_sale_price_jpy"].help_text = "円で考える商品はこの売価を使います。"
         self.fields["expected_sale_price_usd"].widget.attrs["data-sale-price-usd"] = "true"
         self.fields["expected_sale_price_jpy"].widget.attrs["data-sale-price-jpy"] = "true"
         self.fields["exchange_rate"].widget.attrs["data-sale-price-exchange-rate"] = "true"
@@ -101,32 +100,16 @@ class ProductForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        sales_channel = cleaned_data.get("sales_channel")
         usd = cleaned_data.get("expected_sale_price_usd")
         jpy = cleaned_data.get("expected_sale_price_jpy")
         exchange_rate = cleaned_data.get("exchange_rate")
-        direct_jpy_channel = sales_channel in {Product.SalesChannel.MERCARI, Product.SalesChannel.OTHER}
-
-        if sales_channel == Product.SalesChannel.MERCARI and cleaned_data.get("ebay_fee_rate") == Decimal("15.00"):
-            cleaned_data["ebay_fee_rate"] = Decimal("10.00")
 
         if usd is None and jpy is None:
             self.add_error("expected_sale_price_jpy", "想定売価はUSDまたはJPYのどちらかを入力してください。")
             return cleaned_data
 
-        if direct_jpy_channel:
-            if jpy is None:
-                self.add_error("expected_sale_price_jpy", "メルカリ/その他では想定売価JPYを入力してください。")
-                return cleaned_data
-            cleaned_data["expected_sale_price_usd"] = None
-            cleaned_data["exchange_rate"] = exchange_rate or Decimal("1.00")
-            return cleaned_data
-
         if usd is None and jpy is not None:
-            if exchange_rate is None:
-                self.add_error("exchange_rate", "JPYから換算するには為替を入力してください。")
-                return cleaned_data
-            cleaned_data["expected_sale_price_usd"] = (Decimal(jpy) / exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            cleaned_data["exchange_rate"] = exchange_rate or Decimal("1.00")
 
         if usd is not None:
             if exchange_rate is None:
@@ -142,6 +125,7 @@ class ProductQuickUpdateForm(forms.ModelForm):
         model = Product
         fields = [
             "status",
+            "actual_sales_channel",
             "actual_sale_price_usd",
             "sold_date",
             "shipped_date",
@@ -154,6 +138,7 @@ class ProductQuickUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["actual_sales_channel"].widget.attrs["placeholder"] = "売れたチャネル"
         self.fields["actual_sale_price_usd"].widget.attrs["placeholder"] = "実売USD"
         self.fields["sold_date"].widget.attrs["placeholder"] = "売却日"
         self.fields["shipped_date"].widget.attrs["placeholder"] = "発送日"

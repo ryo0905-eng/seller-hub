@@ -35,7 +35,6 @@
                         {% include "profittracker/partials/form_field.html" with field=form.category %}
                         {% include "profittracker/partials/form_field.html" with field=form.source %}
                         {% include "profittracker/partials/form_field.html" with field=form.status %}
-                        {% include "profittracker/partials/form_field.html" with field=form.sales_channel %}
                         {% include "profittracker/partials/form_field.html" with field=form.purchase_price_jpy %}
                         {% include "profittracker/partials/form_field.html" with field=form.expected_sale_price_usd %}
                         {% include "profittracker/partials/form_field.html" with field=form.expected_sale_price_jpy %}
@@ -79,6 +78,7 @@
                                 <div class="row g-3 compact-form-grid">
                                     {% include "profittracker/partials/form_field.html" with field=form.listed_date %}
                                     {% include "profittracker/partials/form_field.html" with field=form.sold_date %}
+                                    {% include "profittracker/partials/form_field.html" with field=form.actual_sales_channel %}
                                     {% include "profittracker/partials/form_field.html" with field=form.actual_sale_price_usd %}
                                     {% include "profittracker/partials/form_field.html" with field=form.actual_sale_price_jpy_manual %}
                                     {% include "profittracker/partials/exchange_rate_field.html" with field=form.actual_exchange_rate note="実際の入金・換金レートが分かる場合はそちらを優先してください。" %}
@@ -120,5 +120,4 @@
 {% block extra_js %}
 <script src="{% static 'js/exchange_rate.js' %}"></script>
 <script src="{% static 'js/sale_price_converter.js' %}"></script>
-<script src="{% static 'js/sales_channel_defaults.js' %}"></script>
 {% endblock %}

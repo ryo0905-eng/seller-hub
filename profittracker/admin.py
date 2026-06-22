@@ -21,8 +21,8 @@ class ProductAdmin(admin.ModelAdmin):
         "sku",
         "title",
         "owner",
-        "sales_channel",
         "status",
+        "actual_sales_channel",
         "condition",
         "purchase_price_jpy",
         "expected_sale_price_usd",
@@ -37,7 +37,7 @@ class ProductAdmin(admin.ModelAdmin):
         "roi",
         "updated_at",
     )
-    list_filter = ("sales_channel", "status", "condition", "category", "brand", "source", "buyer_country")
+    list_filter = ("actual_sales_channel", "status", "condition", "category", "brand", "source", "buyer_country")
     search_fields = (
         "sku",
         "title",
@@ -68,7 +68,7 @@ class ProductAdmin(admin.ModelAdmin):
         "updated_at",
     )
     fieldsets = (
-        ("基本情報", {"fields": ("owner", "sku", "title", "brand", "category", "condition", "quantity", "source", "sales_channel", "status")}),
+        ("基本情報", {"fields": ("owner", "sku", "title", "brand", "category", "condition", "quantity", "source", "status")}),
         (
             "想定利益",
             {
@@ -97,6 +97,7 @@ class ProductAdmin(admin.ModelAdmin):
                     "listed_date",
                     "sold_date",
                     "shipped_date",
+                    "actual_sales_channel",
                     "actual_sale_price_usd",
                     "actual_sale_price_jpy_manual",
                     "actual_exchange_rate",

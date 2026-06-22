@@ -92,17 +92,17 @@ class ProductListView(OwnerQuerysetMixin, ListView):
 
         if fee_multiplier > 0 and product.exchange_rate > 0:
             breakeven_jpy = self.yen(Decimal(total_cost_jpy) / fee_multiplier)
-            if product.sales_channel == Product.SalesChannel.EBAY:
+            if product.expected_sale_price_usd is not None:
                 breakeven_usd = (Decimal(breakeven_jpy) / product.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             target_multiplier = fee_multiplier - target_profit_rate / Decimal("100")
             if target_multiplier > 0:
                 target_sale_jpy = self.yen(Decimal(total_cost_jpy) / target_multiplier)
-                if product.sales_channel == Product.SalesChannel.EBAY:
+                if product.expected_sale_price_usd is not None:
                     target_sale_usd = (Decimal(target_sale_jpy) / product.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
         def discount_snapshot(percent):
             sale_price_usd = None
-            if product.expected_sale_price_usd is not None and product.sales_channel == Product.SalesChannel.EBAY:
+            if product.expected_sale_price_usd is not None:
                 sale_price_usd = (product.expected_sale_price_usd * (Decimal("100") - Decimal(percent)) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
                 sale_price_jpy = self.yen(sale_price_usd * product.exchange_rate)
             else:
@@ -451,7 +451,6 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
         for field in [
             "title",
             "purchase_price_jpy",
-            "sales_channel",
             "expected_sale_price_usd",
             "expected_sale_price_jpy",
             "shipping_cost_jpy",
@@ -511,7 +510,6 @@ class ProductCsvExportView(LoginRequiredMixin, View):
         "purchase_price_jpy",
         "purchase_shipping_jpy",
         "other_cost_jpy",
-        "sales_channel",
         "expected_sale_price_usd",
         "expected_sale_price_jpy",
         "shipping_cost_jpy",
@@ -521,6 +519,7 @@ class ProductCsvExportView(LoginRequiredMixin, View):
         "listed_date",
         "sold_date",
         "shipped_date",
+        "actual_sales_channel",
         "actual_sale_price_usd",
         "actual_sale_price_jpy_manual",
         "actual_exchange_rate",

@@ -66,7 +66,6 @@ class ProductCalculationTests(TestCase):
                 "purchase_price_jpy": "7000",
                 "purchase_shipping_jpy": "0",
                 "other_cost_jpy": "0",
-                "sales_channel": Product.SalesChannel.EBAY,
                 "expected_sale_price_usd": "",
                 "expected_sale_price_jpy": "15500",
                 "shipping_cost_jpy": "2500",
@@ -77,7 +76,7 @@ class ProductCalculationTests(TestCase):
         )
 
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["expected_sale_price_usd"], Decimal("100.00"))
+        self.assertEqual(form.cleaned_data["expected_sale_price_usd"], None)
         self.assertEqual(form.cleaned_data["expected_sale_price_jpy"], 15500)
 
     def test_product_form_initializes_expected_sale_price_jpy_input(self):
@@ -95,34 +94,56 @@ class ProductCalculationTests(TestCase):
 
         self.assertEqual(form.initial["expected_sale_price_jpy"], 15500)
 
-    def test_mercari_product_uses_jpy_sale_price_and_10_percent_fee(self):
+    def test_jpy_sale_price_product_uses_jpy_for_profit(self):
         form = ProductForm(
             data={
-                "title": "Mercari Item",
+                "title": "JPY Sale Item",
                 "condition": Product.Condition.USED,
                 "quantity": "1",
                 "purchase_price_jpy": "7000",
                 "purchase_shipping_jpy": "0",
                 "other_cost_jpy": "0",
-                "sales_channel": Product.SalesChannel.MERCARI,
                 "expected_sale_price_usd": "",
                 "expected_sale_price_jpy": "12000",
                 "shipping_cost_jpy": "1000",
                 "exchange_rate": "",
-                "ebay_fee_rate": "15.00",
+                "ebay_fee_rate": "10.00",
                 "status": Product.Status.PURCHASED,
             }
         )
 
         self.assertTrue(form.is_valid(), form.errors)
         product = form.save(commit=False)
-        product.owner = get_user_model().objects.create_user(username="mercari-seller", password="pass")
+        product.owner = get_user_model().objects.create_user(username="jpy-channel-seller", password="pass")
         self.assertEqual(product.expected_sale_price_usd, None)
         self.assertEqual(product.exchange_rate, Decimal("1.00"))
         self.assertEqual(product.ebay_fee_rate, Decimal("10.00"))
         self.assertEqual(product.sale_price_jpy, 12000)
         self.assertEqual(product.ebay_fee_jpy, 1200)
         self.assertEqual(product.expected_profit_jpy, 2800)
+
+    def test_actual_sales_channel_can_be_recorded(self):
+        form = ProductForm(
+            data={
+                "title": "Sold on Mercari",
+                "condition": Product.Condition.USED,
+                "quantity": "1",
+                "purchase_price_jpy": "7000",
+                "purchase_shipping_jpy": "0",
+                "other_cost_jpy": "0",
+                "expected_sale_price_usd": "",
+                "expected_sale_price_jpy": "12000",
+                "shipping_cost_jpy": "1000",
+                "exchange_rate": "",
+                "ebay_fee_rate": "10.00",
+                "status": Product.Status.SOLD,
+                "actual_sales_channel": Product.SalesChannel.MERCARI,
+                "actual_sale_price_jpy_manual": "12000",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["actual_sales_channel"], Product.SalesChannel.MERCARI)
 
     def test_actual_ebay_fee_defaults_to_15_percent_estimate_when_blank(self):
         product = Product(

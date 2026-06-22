@@ -439,6 +439,16 @@ main.container {
     color: #b42318;
 }
 
+.channel-yahoo_auction {
+    background: #efe9ff;
+    color: #5b21b6;
+}
+
+.channel-rakuma {
+    background: #e8f7ef;
+    color: #0f766e;
+}
+
 .channel-other {
     background: #eef2f7;
     color: #394150;

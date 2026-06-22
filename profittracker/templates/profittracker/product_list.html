@@ -91,8 +91,10 @@
                                 {% endif %}
                                 <div class="min-w-0">
                                     <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                        <span class="badge channel-badge channel-{{ product.sales_channel }}">{{ product.get_sales_channel_display }}</span>
                                         <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
+                                        {% if product.actual_sales_channel %}
+                                            <span class="badge channel-badge channel-{{ product.actual_sales_channel }}">売却: {{ product.get_actual_sales_channel_display }}</span>
+                                        {% endif %}
                                         <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
                                     </div>
                                     <a class="h5 fw-bold product-title-link d-block mb-1" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
@@ -119,13 +121,13 @@
                             <div class="summary-tile">
                                 <span>現在売価</span>
                                 <strong>
-                                    {% if product.sales_channel == "ebay" and product.expected_sale_price_usd != None %}
+                                    {% if product.expected_sale_price_usd != None %}
                                         ${{ product.expected_sale_price_usd }}
                                     {% else %}
                                         {{ product.sale_price_jpy|floatformat:0 }}円
                                     {% endif %}
                                 </strong>
-                                <small>{% if product.sales_channel == "ebay" %}{{ product.sale_price_jpy|floatformat:0 }}円{% else %}{{ product.ebay_fee_rate }}%手数料{% endif %}</small>
+                                <small>{% if product.expected_sale_price_usd != None %}{{ product.sale_price_jpy|floatformat:0 }}円{% else %}{{ product.ebay_fee_rate }}%手数料{% endif %}</small>
                             </div>
                             <div class="summary-tile">
                                 <span>想定利益</span>

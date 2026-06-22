@@ -60,7 +60,6 @@
         <div class="analytics-panel">
             <h2 class="h5 fw-bold mb-3">基本情報</h2>
             <dl class="detail-grid">
-                <dt>販売チャネル</dt><dd>{{ product.get_sales_channel_display }}</dd>
                 <dt>ステータス</dt><dd><span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span></dd>
                 <dt>状態</dt><dd>{{ product.get_condition_display }}</dd>
                 <dt>数量</dt><dd>{{ product.quantity }}</dd>
@@ -100,6 +99,7 @@
             <h2 class="h5 fw-bold mb-3">実績</h2>
             <dl class="detail-grid">
                 <dt>実売価格</dt><dd>{% if product.actual_sale_price_jpy != None %}{% if product.actual_sale_price_usd %}${{ product.actual_sale_price_usd }} / {% endif %}{{ product.actual_sale_price_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
+                <dt>売れたチャネル</dt><dd>{% if product.actual_sales_channel %}{{ product.get_actual_sales_channel_display }}{% else %}-{% endif %}</dd>
                 <dt>実為替</dt><dd>{{ product.actual_exchange_rate|default:"-" }}</dd>
                 <dt>実送料</dt><dd>{% if product.actual_shipping_cost_jpy != None %}{{ product.actual_shipping_cost_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>
                 <dt>実販売手数料</dt><dd>{% if product.actual_fee_for_profit_jpy != None %}{{ product.actual_fee_for_profit_jpy|floatformat:0 }}円{% else %}-{% endif %}</dd>

@@ -36,6 +36,8 @@ class Product(models.Model):
     class SalesChannel(models.TextChoices):
         EBAY = "ebay", "eBay"
         MERCARI = "mercari", "メルカリ"
+        YAHOO_AUCTION = "yahoo_auction", "ヤフオク"
+        RAKUMA = "rakuma", "ラクマ"
         OTHER = "other", "その他"
 
     class Status(models.TextChoices):
@@ -66,7 +68,6 @@ class Product(models.Model):
     purchase_price_jpy = models.PositiveIntegerField("仕入価格")
     purchase_shipping_jpy = models.PositiveIntegerField("仕入れ時送料", default=0)
     other_cost_jpy = models.PositiveIntegerField("その他コスト", default=0)
-    sales_channel = models.CharField("販売チャネル", max_length=20, choices=SalesChannel.choices, default=SalesChannel.EBAY)
     expected_sale_price_usd = models.DecimalField("想定売価USD", max_digits=10, decimal_places=2, null=True, blank=True)
     expected_sale_price_jpy = models.PositiveIntegerField("想定売価JPY", null=True, blank=True)
     shipping_cost_jpy = models.PositiveIntegerField("送料")
@@ -76,6 +77,7 @@ class Product(models.Model):
     listed_date = models.DateField("出品日", null=True, blank=True)
     sold_date = models.DateField("売却日", null=True, blank=True)
     shipped_date = models.DateField("発送日", null=True, blank=True)
+    actual_sales_channel = models.CharField("売れたチャネル", max_length=20, choices=SalesChannel.choices, blank=True)
     actual_sale_price_usd = models.DecimalField("実売価格USD", max_digits=10, decimal_places=2, null=True, blank=True)
     actual_sale_price_jpy_manual = models.PositiveIntegerField("実売価格JPY", null=True, blank=True)
     actual_exchange_rate = models.DecimalField("実際の為替", max_digits=8, decimal_places=2, null=True, blank=True)
@@ -108,9 +110,11 @@ class Product(models.Model):
 
     @property
     def sale_price_jpy(self):
-        if self.sales_channel == self.SalesChannel.EBAY and self.expected_sale_price_usd is not None:
+        if self.expected_sale_price_jpy is not None:
+            return self.expected_sale_price_jpy
+        if self.expected_sale_price_usd is not None:
             return self.yen(self.expected_sale_price_usd * self.exchange_rate)
-        return self.expected_sale_price_jpy or 0
+        return 0
 
     @property
     def ebay_fee_jpy(self):
