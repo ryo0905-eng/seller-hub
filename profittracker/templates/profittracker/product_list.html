@@ -123,19 +123,13 @@
                             </div>
                             <div class="summary-tile">
                                 <span>想定売価</span>
-                                <strong>
-                                    {% if product.expected_sale_price_usd != None %}
-                                        ${{ product.expected_sale_price_usd }}
-                                    {% else %}
-                                        {{ product.sale_price_jpy|floatformat:0 }}円
-                                    {% endif %}
-                                </strong>
-                                <small>{% if product.expected_sale_price_usd != None %}{{ product.sale_price_jpy|floatformat:0 }}円{% else %}{{ product.ebay_fee_rate }}%手数料{% endif %}</small>
+                                <strong>{{ product.sale_price_jpy|floatformat:0 }}円</strong>
+                                <small>{% if product.expected_sale_price_usd != None %}${{ product.expected_sale_price_usd }}{% else %}{{ product.ebay_fee_rate }}%手数料{% endif %}</small>
                             </div>
                             <div class="summary-tile">
                                 <span>赤字売価</span>
-                                <strong>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% elif pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円{% else %}-{% endif %}</strong>
-                                <small>{% if pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円以上で黒字{% else %}計算不可{% endif %}</small>
+                                <strong>{% if pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円{% else %}-{% endif %}</strong>
+                                <small>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% elif pricing.breakeven_jpy != None %}以上で黒字{% else %}計算不可{% endif %}</small>
                             </div>
                             <div class="summary-tile">
                                 <span>想定利益率</span>
