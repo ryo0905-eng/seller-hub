@@ -19,6 +19,7 @@
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">一覧へ</a>
         <a class="btn btn-primary-action" href="{% url 'product_update' product.pk %}">編集</a>
+        <a class="btn btn-outline-danger" href="{% url 'product_delete' product.pk %}">削除</a>
     </div>
 </div>
 

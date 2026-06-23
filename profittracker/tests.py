@@ -423,6 +423,25 @@ class ProductViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Detail Item")
         self.assertContains(response, "基本情報")
+        self.assertContains(response, "削除")
+
+    def test_product_delete_confirmation_renders_before_delete(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        product = Product.objects.create(
+            owner=user,
+            title="Delete Candidate",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("product_delete", args=[product.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "商品を削除しますか？")
+        self.assertContains(response, "Delete Candidate")
 
     def test_quick_update_changes_sales_fields(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")
