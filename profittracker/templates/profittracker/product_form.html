@@ -41,6 +41,7 @@
                         {% include "profittracker/partials/form_field.html" with field=form.shipping_cost_jpy %}
                         {% include "profittracker/partials/exchange_rate_field.html" with field=form.exchange_rate %}
                         {% include "profittracker/partials/form_field.html" with field=form.ebay_fee_rate %}
+                        {% include "profittracker/partials/form_field.html" with field=form.purchase_date %}
                         {% include "profittracker/partials/form_field.html" with field=form.memo wide=True %}
                     </div>
                 </div>
@@ -57,7 +58,6 @@
                                 <div class="row g-3 compact-form-grid">
                                     {% include "profittracker/partials/form_field.html" with field=form.condition %}
                                     {% include "profittracker/partials/form_field.html" with field=form.quantity %}
-                                    {% include "profittracker/partials/form_field.html" with field=form.purchase_date %}
                                     {% include "profittracker/partials/form_field.html" with field=form.purchase_shipping_jpy %}
                                     {% include "profittracker/partials/form_field.html" with field=form.other_cost_jpy %}
                                     {% include "profittracker/partials/form_field.html" with field=form.purchase_url wide=True %}
