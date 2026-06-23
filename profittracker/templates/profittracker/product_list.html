@@ -103,6 +103,9 @@
                                         {% if product.brand %}{{ product.brand }} / {% endif %}
                                         {% if product.category %}{{ product.category }} / {% endif %}
                                         {% if product.source %}{{ product.source }}{% endif %}
+                                        {% if product.purchase_url %}
+                                            / <a class="source-link" href="{{ product.purchase_url }}" target="_blank" rel="noopener">仕入れ元</a>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>

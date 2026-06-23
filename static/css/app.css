@@ -313,6 +313,18 @@ main.container {
     text-decoration: underline;
 }
 
+.source-link {
+    color: #394150;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.source-link:hover,
+.source-link:focus {
+    color: var(--app-text);
+    text-decoration: underline;
+}
+
 .product-thumb {
     background: #eef1f5;
     border: 1px solid var(--app-border);

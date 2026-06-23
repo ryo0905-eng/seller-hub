@@ -208,6 +208,7 @@ class ProductViewTests(TestCase):
             exchange_rate=Decimal("150.00"),
             ebay_fee_rate=Decimal("13.00"),
             status=Product.Status.LISTED,
+            purchase_url="https://example.com/source",
         )
         self.client.force_login(user)
 
@@ -222,6 +223,8 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "赤字売価")
         self.assertContains(response, "想定利益率")
         self.assertContains(response, "想定ROI")
+        self.assertContains(response, "仕入れ元")
+        self.assertContains(response, 'href="https://example.com/source"')
         self.assertNotContains(response, "10%値下げ")
         self.assertContains(response, "日付未入力")
         self.assertContains(response, "編集・実績入力")
