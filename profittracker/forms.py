@@ -186,6 +186,11 @@ class SellerSettingsForm(forms.ModelForm):
             "default_shipping_cost_jpy",
             "default_exchange_rate",
             "default_ebay_fee_rate",
+            "markdown_ok_days",
+            "markdown_review_days",
+            "loss_cut_days",
+            "long_inventory_days",
+            "low_profit_rate",
         ]
 
     def __init__(self, *args, **kwargs):

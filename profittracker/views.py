@@ -82,7 +82,7 @@ class ProductListView(OwnerQuerysetMixin, ListView):
             )
         return queryset
 
-    def pricing_snapshot(self, product, target_profit_rate):
+    def pricing_snapshot(self, product, seller_settings):
         total_cost_jpy = product.purchase_price_jpy + product.purchase_shipping_jpy + product.other_cost_jpy + product.shipping_cost_jpy
         fee_multiplier = Decimal("1") - product.ebay_fee_rate / Decimal("100")
         breakeven_jpy = None
@@ -94,7 +94,7 @@ class ProductListView(OwnerQuerysetMixin, ListView):
             breakeven_jpy = self.yen(Decimal(total_cost_jpy) / fee_multiplier)
             if product.expected_sale_price_usd is not None:
                 breakeven_usd = (Decimal(breakeven_jpy) / product.exchange_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            target_multiplier = fee_multiplier - target_profit_rate / Decimal("100")
+            target_multiplier = fee_multiplier - seller_settings.default_target_profit_rate / Decimal("100")
             if target_multiplier > 0:
                 target_sale_jpy = self.yen(Decimal(total_cost_jpy) / target_multiplier)
                 if product.expected_sale_price_usd is not None:
@@ -130,11 +130,19 @@ class ProductListView(OwnerQuerysetMixin, ListView):
             decision = {"label": "日付未入力", "class": "warning", "message": "仕入れ日を入力"}
         elif product.expected_profit_jpy < 0:
             decision = {"label": "要見直し", "class": "danger", "message": "現売価で赤字"}
-        elif (age is not None and age >= 90 and profit_rate < Decimal("15.0")) or (age is not None and age >= 60 and discount_20["profit_jpy"] < 0):
+        elif (
+            age is not None
+            and age >= seller_settings.long_inventory_days
+            and profit_rate < seller_settings.low_profit_rate
+        ) or (
+            age is not None
+            and age >= seller_settings.loss_cut_days
+            and discount_20["profit_jpy"] < 0
+        ):
             decision = {"label": "損切り候補", "class": "danger", "message": "回転優先で再価格"}
-        elif age is not None and age >= 45:
+        elif age is not None and age >= seller_settings.markdown_review_days:
             decision = {"label": "値下げ検討", "class": "warning", "message": "10%下げを確認"}
-        elif age is not None and age >= 30 and discount_10["profit_jpy"] >= 0:
+        elif age is not None and age >= seller_settings.markdown_ok_days and discount_10["profit_jpy"] >= 0:
             decision = {"label": "値下げ余地あり", "class": "success", "message": "10%下げても黒字"}
         else:
             decision = {"label": "維持", "class": "neutral", "message": "現価格で様子見"}
@@ -171,7 +179,7 @@ class ProductListView(OwnerQuerysetMixin, ListView):
         product_cards = [
             {
                 "product": product,
-                "pricing": self.pricing_snapshot(product, seller_settings.default_target_profit_rate),
+                "pricing": self.pricing_snapshot(product, seller_settings),
             }
             for product in products
         ]

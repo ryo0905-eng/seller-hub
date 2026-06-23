@@ -16,16 +16,49 @@
                 {% if form.non_field_errors %}
                     <div class="alert alert-danger">{{ form.non_field_errors }}</div>
                 {% endif %}
-                <div class="row g-3 compact-form-grid">
-                    {% for field in form %}
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            {{ field }}
-                            {% for error in field.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
+                <div class="form-section primary-section">
+                    <div class="section-heading">
+                        <div>
+                            <div class="eyebrow">Defaults</div>
+                            <h2 class="h5 fw-bold mb-1">入力デフォルト</h2>
                         </div>
-                    {% endfor %}
+                    </div>
+                    <div class="row g-3 compact-form-grid">
+                        {% for field in form %}
+                            {% if field.name|slice:":8" == "default_" %}
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-heading">
+                        <div>
+                            <div class="eyebrow">Pricing Rules</div>
+                            <h2 class="h5 fw-bold mb-1">価格判断基準</h2>
+                            <p class="text-muted small mb-0">一覧の「維持」「値下げ余地あり」「損切り候補」などの判定に使います。</p>
+                        </div>
+                    </div>
+                    <div class="row g-3 compact-form-grid">
+                        {% for field in form %}
+                            {% if field.name|slice:":8" != "default_" %}
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
             <div class="card-footer form-actions d-flex justify-content-end">

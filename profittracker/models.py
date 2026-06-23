@@ -18,6 +18,11 @@ class SellerSettings(models.Model):
     default_shipping_cost_jpy = models.PositiveIntegerField("デフォルト送料", default=0)
     default_exchange_rate = models.DecimalField("デフォルト為替", max_digits=8, decimal_places=2, default=Decimal("150.00"))
     default_ebay_fee_rate = models.DecimalField("デフォルトeBay手数料率", max_digits=5, decimal_places=2, default=Decimal("15.00"))
+    markdown_ok_days = models.PositiveIntegerField("値下げ余地あり日数", default=30)
+    markdown_review_days = models.PositiveIntegerField("値下げ検討日数", default=45)
+    loss_cut_days = models.PositiveIntegerField("損切り候補日数", default=60)
+    long_inventory_days = models.PositiveIntegerField("長期在庫日数", default=90)
+    low_profit_rate = models.DecimalField("低利益率判定", max_digits=5, decimal_places=1, default=Decimal("15.0"))
 
     class Meta:
         verbose_name = "セラー設定"

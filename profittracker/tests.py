@@ -303,6 +303,11 @@ class ProductViewTests(TestCase):
                 "default_shipping_cost_jpy": "1800",
                 "default_exchange_rate": "158.25",
                 "default_ebay_fee_rate": "16.00",
+                "markdown_ok_days": "35",
+                "markdown_review_days": "50",
+                "loss_cut_days": "70",
+                "long_inventory_days": "100",
+                "low_profit_rate": "12.5",
             },
         )
 
@@ -313,6 +318,11 @@ class ProductViewTests(TestCase):
         self.assertEqual(settings.default_shipping_cost_jpy, 1800)
         self.assertEqual(settings.default_exchange_rate, Decimal("158.25"))
         self.assertEqual(settings.default_ebay_fee_rate, Decimal("16.00"))
+        self.assertEqual(settings.markdown_ok_days, 35)
+        self.assertEqual(settings.markdown_review_days, 50)
+        self.assertEqual(settings.loss_cut_days, 70)
+        self.assertEqual(settings.long_inventory_days, 100)
+        self.assertEqual(settings.low_profit_rate, Decimal("12.5"))
 
         simulator_response = self.client.get(reverse("sourcing_simulator"))
         self.assertContains(simulator_response, 'value="1800"')
@@ -320,6 +330,34 @@ class ProductViewTests(TestCase):
         self.assertContains(simulator_response, 'value="16.00"')
         self.assertContains(simulator_response, 'value="25.0"')
         self.assertContains(simulator_response, 'value="40.0"')
+
+    def test_product_list_uses_seller_pricing_rule_settings(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        SellerSettings.objects.create(
+            owner=user,
+            markdown_ok_days=60,
+            markdown_review_days=75,
+            loss_cut_days=90,
+            long_inventory_days=120,
+            low_profit_rate=Decimal("10.0"),
+        )
+        Product.objects.create(
+            owner=user,
+            title="Custom Rule Item",
+            purchase_price_jpy=5000,
+            expected_sale_price_usd=Decimal("100.00"),
+            shipping_cost_jpy=1000,
+            exchange_rate=Decimal("150.00"),
+            purchase_date=date(2026, 5, 10),
+            status=Product.Status.LISTED,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("product_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Custom Rule Item")
+        self.assertContains(response, "維持")
 
     def test_product_create_uses_seller_settings_defaults(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")
