@@ -95,7 +95,9 @@
                                         {% if product.actual_sales_channel %}
                                             <span class="badge channel-badge channel-{{ product.actual_sales_channel }}">売却: {{ product.get_actual_sales_channel_display }}</span>
                                         {% endif %}
-                                        <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
+                                        {% if product.status != "sold" and product.status != "shipped" %}
+                                            <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
+                                        {% endif %}
                                     </div>
                                     <a class="h5 fw-bold product-title-link d-block mb-1" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
                                     <div class="text-muted small text-truncate">
