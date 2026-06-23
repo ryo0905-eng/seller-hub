@@ -223,6 +223,7 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "赤字売価")
         self.assertContains(response, "想定利益率")
         self.assertContains(response, "想定ROI")
+        self.assertContains(response, "在庫未入力")
         self.assertContains(response, "仕入れ元")
         self.assertContains(response, 'href="https://example.com/source"')
         self.assertNotContains(response, "10%値下げ")

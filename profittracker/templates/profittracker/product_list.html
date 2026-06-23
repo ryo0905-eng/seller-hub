@@ -104,7 +104,8 @@
                                         {% if product.sku %}{{ product.sku }} / {% endif %}
                                         {% if product.brand %}{{ product.brand }} / {% endif %}
                                         {% if product.category %}{{ product.category }} / {% endif %}
-                                        {% if product.source %}{{ product.source }}{% endif %}
+                                        {% if product.source %}{{ product.source }} / {% endif %}
+                                        {% if product.inventory_age_days != None %}在庫{{ product.inventory_age_days }}日{% else %}在庫未入力{% endif %}
                                         {% if product.purchase_url %}
                                             / <a class="source-link" href="{{ product.purchase_url }}" target="_blank" rel="noopener">仕入れ元</a>
                                         {% endif %}
