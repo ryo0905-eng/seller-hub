@@ -48,7 +48,7 @@
                     </div>
                     <div class="row g-3 compact-form-grid">
                         {% for field in form %}
-                            {% if field.name|slice:":8" != "default_" %}
+                            {% if field.name|slice:":8" != "default_" and field.name != "brand_keywords" %}
                                 <div class="col-12 col-md-6">
                                     <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
                                     {{ field }}
@@ -59,6 +59,21 @@
                             {% endif %}
                         {% endfor %}
                     </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-heading">
+                        <div>
+                            <div class="eyebrow">Brand Dictionary</div>
+                            <h2 class="h5 fw-bold mb-1">ブランド自動入力辞書</h2>
+                            <p class="text-muted small mb-0">1行に1ブランドずつ入力してください。商品名の先頭と一致したブランドを自動入力します。</p>
+                        </div>
+                    </div>
+                    <label class="form-label" for="{{ form.brand_keywords.id_for_label }}">{{ form.brand_keywords.label }}</label>
+                    {{ form.brand_keywords }}
+                    {% for error in form.brand_keywords.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
                 </div>
             </div>
             <div class="card-footer form-actions d-flex justify-content-end">

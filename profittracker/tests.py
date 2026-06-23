@@ -296,6 +296,10 @@ class ProductViewTests(TestCase):
         user = get_user_model().objects.create_user(username="seller", password="pass")
         self.client.force_login(user)
 
+        settings_response = self.client.get(reverse("seller_settings"))
+        self.assertEqual(settings_response.status_code, 200)
+        self.assertContains(settings_response, "ブランド自動入力辞書")
+
         response = self.client.post(
             reverse("seller_settings"),
             {
@@ -309,6 +313,7 @@ class ProductViewTests(TestCase):
                 "loss_cut_days": "70",
                 "long_inventory_days": "100",
                 "low_profit_rate": "12.5",
+                "brand_keywords": "Bottega Veneta\nPorter",
             },
         )
 
@@ -324,6 +329,7 @@ class ProductViewTests(TestCase):
         self.assertEqual(settings.loss_cut_days, 70)
         self.assertEqual(settings.long_inventory_days, 100)
         self.assertEqual(settings.low_profit_rate, Decimal("12.5"))
+        self.assertEqual(settings.brand_keyword_list, ["Bottega Veneta", "Porter"])
 
         simulator_response = self.client.get(reverse("sourcing_simulator"))
         self.assertContains(simulator_response, 'value="1800"')
@@ -367,6 +373,7 @@ class ProductViewTests(TestCase):
             default_shipping_cost_jpy=2200,
             default_exchange_rate=Decimal("159.50"),
             default_ebay_fee_rate=Decimal("16.50"),
+            brand_keywords="Bottega Veneta\nPorter",
         )
         self.client.force_login(user)
 
@@ -376,6 +383,8 @@ class ProductViewTests(TestCase):
         self.assertContains(response, 'name="shipping_cost_jpy" value="2200"')
         self.assertContains(response, 'name="exchange_rate" value="159.50"')
         self.assertContains(response, 'name="ebay_fee_rate" value="16.50"')
+        self.assertContains(response, "brand-keywords-data")
+        self.assertContains(response, "Bottega Veneta")
 
     def test_product_create_accepts_simulator_initial_values(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")

@@ -57,6 +57,8 @@ class ProductForm(forms.ModelForm):
         self.fields["expected_sale_price_usd"].required = False
         self.fields["expected_sale_price_jpy"].required = False
         self.fields["exchange_rate"].required = False
+        self.fields["title"].widget.attrs["data-brand-title"] = "true"
+        self.fields["brand"].widget.attrs["data-brand-input"] = "true"
         self.fields["expected_sale_price_usd"].help_text = "USDで考える商品だけ入力してください。"
         self.fields["expected_sale_price_jpy"].help_text = "円で考える商品はこの売価を使います。"
         self.fields["expected_sale_price_usd"].widget.attrs["data-sale-price-usd"] = "true"
@@ -191,7 +193,11 @@ class SellerSettingsForm(forms.ModelForm):
             "loss_cut_days",
             "long_inventory_days",
             "low_profit_rate",
+            "brand_keywords",
         ]
+        widgets = {
+            "brand_keywords": forms.Textarea(attrs={"rows": 8}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

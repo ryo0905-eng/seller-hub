@@ -23,6 +23,11 @@ class SellerSettings(models.Model):
     loss_cut_days = models.PositiveIntegerField("損切り候補日数", default=60)
     long_inventory_days = models.PositiveIntegerField("長期在庫日数", default=90)
     low_profit_rate = models.DecimalField("低利益率判定", max_digits=5, decimal_places=1, default=Decimal("15.0"))
+    brand_keywords = models.TextField(
+        "ブランド自動入力辞書",
+        default="Hermès\nBottega Veneta\nLouis Vuitton\nYves Saint Laurent\nSaint Laurent\nMaison Margiela\nComme des Garçons\nDolce & Gabbana\nPorter\nSeiko\nCanon",
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "セラー設定"
@@ -35,6 +40,10 @@ class SellerSettings(models.Model):
     def get_for_user(cls, user):
         settings_obj, _ = cls.objects.get_or_create(owner=user)
         return settings_obj
+
+    @property
+    def brand_keyword_list(self):
+        return [line.strip() for line in self.brand_keywords.splitlines() if line.strip()]
 
 
 class Product(models.Model):

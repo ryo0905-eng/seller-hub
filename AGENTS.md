@@ -46,6 +46,12 @@ Sales channels:
 - Use `actual_sales_channel` only for where the item actually sold.
 - Show actual channel in listings only when it is set.
 
+Brand autofill:
+
+- Brand autofill is driven by `SellerSettings.brand_keywords`.
+- It should only fill an empty or previously auto-filled brand field.
+- Do not overwrite a user-edited brand value.
+
 Deletion:
 
 - Deletion should not be a one-click action from the pricing board.

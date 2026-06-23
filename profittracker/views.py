@@ -440,7 +440,14 @@ class ProductDetailView(OwnerQuerysetMixin, DetailView):
     context_object_name = "product"
 
 
-class ProductCreateView(LoginRequiredMixin, CreateView):
+class ProductFormContextMixin:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["brand_keywords"] = SellerSettings.get_for_user(self.request.user).brand_keyword_list
+        return context
+
+
+class ProductCreateView(ProductFormContextMixin, LoginRequiredMixin, CreateView):
     model = Product
     form_class = ProductForm
     template_name = "profittracker/product_form.html"
@@ -475,7 +482,7 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ProductUpdateView(OwnerQuerysetMixin, UpdateView):
+class ProductUpdateView(ProductFormContextMixin, OwnerQuerysetMixin, UpdateView):
     form_class = ProductForm
     template_name = "profittracker/product_form.html"
     success_url = reverse_lazy("product_list")
