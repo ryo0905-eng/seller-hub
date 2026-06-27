@@ -40,32 +40,46 @@
 </form>
 
 <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
+    <div class="col-6 col-xl-2">
         <div class="metric">
             <span>実利益合計</span>
             <strong class="{% if total_actual_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ total_actual_profit|floatformat:0 }}円</strong>
             <small>Actual profit</small>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
+    <div class="col-6 col-xl-2">
+        <div class="metric">
+            <span>販売数</span>
+            <strong>{{ actual_sales_count }}</strong>
+            <small>Sold items</small>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="metric">
+            <span>平均利益</span>
+            <strong class="{% if average_actual_profit != None and average_actual_profit < 0 %}text-danger{% else %}text-success{% endif %}">{% if average_actual_profit != None %}{{ average_actual_profit|floatformat:0 }}円{% else %}-{% endif %}</strong>
+            <small>Profit / item</small>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
         <div class="metric">
             <span>平均ROI</span>
             <strong>{% if average_roi != None %}{{ average_roi }}%{% else %}-{% endif %}</strong>
             <small>Return on investment</small>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
+    <div class="col-6 col-xl-2">
         <div class="metric">
             <span>平均販売日数</span>
             <strong>{% if average_days_to_sell != None %}{{ average_days_to_sell }}日{% else %}-{% endif %}</strong>
             <small>Sell-through</small>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
+    <div class="col-6 col-xl-2">
         <div class="metric">
-            <span>在庫金額</span>
-            <strong>{{ inventory_value|floatformat:0 }}円</strong>
-            <small>Inventory value</small>
+            <span>赤字率</span>
+            <strong class="{% if loss_rate != None and loss_rate > 0 %}text-danger{% endif %}">{% if loss_rate != None %}{{ loss_rate }}%{% else %}-{% endif %}</strong>
+            <small>Loss ratio</small>
         </div>
     </div>
 </div>
@@ -103,7 +117,7 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-12 col-xl-7">
+    <div class="col-12 col-xl-5">
         <div class="analytics-panel">
             <div class="panel-heading">
                 <div>
@@ -119,12 +133,12 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-xl-5">
+    <div class="col-12 col-xl-7">
         <div class="analytics-panel">
             <div class="panel-heading">
                 <div>
                     <h2 class="h5 fw-bold mb-1">仕入先別パフォーマンス</h2>
-                    <p class="text-muted small mb-0">実利益の高い仕入先順です。</p>
+                    <p class="text-muted small mb-0">次も仕入れる候補を、利益・回転・赤字率で見ます。</p>
                 </div>
             </div>
             {% if source_profit_rows %}
@@ -133,14 +147,69 @@
                         <thead>
                         <tr>
                             <th>仕入先</th>
+                            <th class="text-end">販売数</th>
                             <th class="text-end">実利益</th>
+                            <th class="text-end">平均利益</th>
+                            <th class="text-end">平均ROI</th>
+                            <th class="text-end">赤字率</th>
+                            <th class="text-end">販売日数</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {% for source, profit in source_profit_rows %}
+                        {% for row in source_profit_rows %}
                             <tr>
-                                <td class="fw-semibold">{{ source }}</td>
-                                <td class="text-end fw-bold {% if profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ profit|floatformat:0 }}円</td>
+                                <td class="fw-semibold">{{ row.label }}</td>
+                                <td class="text-end">{{ row.sales_count }}</td>
+                                <td class="text-end fw-bold {% if row.total_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ row.total_profit|floatformat:0 }}円</td>
+                                <td class="text-end {% if row.average_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ row.average_profit|floatformat:0 }}円</td>
+                                <td class="text-end">{{ row.average_roi }}%</td>
+                                <td class="text-end {% if row.loss_rate > 0 %}text-danger{% endif %}">{{ row.loss_rate }}%</td>
+                                <td class="text-end">{% if row.average_days_to_sell != None %}{{ row.average_days_to_sell }}日{% else %}-{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="mini-empty">実績入力済みの商品が増えると表示されます。</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="analytics-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">カテゴリ別パフォーマンス</h2>
+                    <p class="text-muted small mb-0">カテゴリごとの利益・回転・赤字率を比較します。</p>
+                </div>
+            </div>
+            {% if category_performance_rows %}
+                <div class="table-responsive">
+                    <table class="table app-table compact-table mb-0">
+                        <thead>
+                        <tr>
+                            <th>カテゴリ</th>
+                            <th class="text-end">販売数</th>
+                            <th class="text-end">実利益</th>
+                            <th class="text-end">平均利益</th>
+                            <th class="text-end">平均ROI</th>
+                            <th class="text-end">赤字率</th>
+                            <th class="text-end">販売日数</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for row in category_performance_rows %}
+                            <tr>
+                                <td class="fw-semibold">{{ row.label }}</td>
+                                <td class="text-end">{{ row.sales_count }}</td>
+                                <td class="text-end fw-bold {% if row.total_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ row.total_profit|floatformat:0 }}円</td>
+                                <td class="text-end {% if row.average_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ row.average_profit|floatformat:0 }}円</td>
+                                <td class="text-end">{{ row.average_roi }}%</td>
+                                <td class="text-end {% if row.loss_rate > 0 %}text-danger{% endif %}">{{ row.loss_rate }}%</td>
+                                <td class="text-end">{% if row.average_days_to_sell != None %}{{ row.average_days_to_sell }}日{% else %}-{% endif %}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -154,7 +223,7 @@
 </div>
 
 <div class="row g-3">
-    <div class="col-12 col-xl-6">
+    <div class="col-12 col-xl-4">
         <div class="analytics-panel">
             <div class="panel-heading">
                 <div>
@@ -179,7 +248,32 @@
             {% endif %}
         </div>
     </div>
-    <div class="col-12 col-xl-6">
+    <div class="col-12 col-xl-4">
+        <div class="analytics-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">想定より下振れ</h2>
+                    <p class="text-muted small mb-0">想定利益との差分が大きい順です。</p>
+                </div>
+            </div>
+            {% if underperforming_products %}
+                <div class="vstack gap-2">
+                    {% for product in underperforming_products %}
+                        <a class="insight-row" href="{% url 'product_update' product.pk %}">
+                            <span>
+                                <strong>{{ product.title }}</strong>
+                                <small>{{ product.category|default:"未分類" }} / 想定差分</small>
+                            </span>
+                            <b class="text-danger">{{ product.profit_gap_jpy|floatformat:0 }}円</b>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="mini-empty">想定を下回った実績はありません。</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
         <div class="analytics-panel">
             <div class="panel-heading">
                 <div>
@@ -205,6 +299,32 @@
         </div>
     </div>
 </div>
+
+{% if incomplete_actual_products %}
+<div class="row g-3 mt-0">
+    <div class="col-12">
+        <div class="analytics-panel attention-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">実績入力待ち</h2>
+                    <p class="text-muted small mb-0">売却済みなのに実利益を計算できない商品です。分析の精度に影響します。</p>
+                </div>
+            </div>
+            <div class="vstack gap-2">
+                {% for product in incomplete_actual_products %}
+                    <a class="insight-row" href="{% url 'product_update' product.pk %}">
+                        <span>
+                            <strong>{{ product.title }}</strong>
+                            <small>{{ product.get_status_display }}{% if product.sold_date %} / 売却日 {{ product.sold_date|date:"Y-m-d" }}{% endif %}</small>
+                        </span>
+                        <b>入力する</b>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {{ monthly_profit_labels|json_script:"monthly-profit-labels" }}
 {{ monthly_profit_values|json_script:"monthly-profit-values" }}

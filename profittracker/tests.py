@@ -596,14 +596,33 @@ class ProductViewTests(TestCase):
             exchange_rate=Decimal("150.00"),
             purchase_date=date(2026, 1, 1),
         )
+        Product.objects.create(
+            owner=user,
+            title="Missing Actual",
+            category="Camera",
+            source="Mercari",
+            purchase_price_jpy=8000,
+            expected_sale_price_usd=Decimal("90.00"),
+            shipping_cost_jpy=2000,
+            exchange_rate=Decimal("150.00"),
+            sold_date=date(2026, 6, 15),
+            status=Product.Status.SOLD,
+        )
         self.client.force_login(user)
 
         response = self.client.get(reverse("analytics"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "月別 実利益")
+        self.assertContains(response, "販売数")
+        self.assertContains(response, "平均利益")
+        self.assertContains(response, "赤字率")
+        self.assertContains(response, "カテゴリ別パフォーマンス")
+        self.assertContains(response, "想定より下振れ")
+        self.assertContains(response, "実績入力待ち")
         self.assertContains(response, "category-profit-labels")
         self.assertContains(response, "Loss Item")
+        self.assertContains(response, "Missing Actual")
         self.assertContains(response, "Long Inventory")
 
     def test_product_detail_renders_for_owner(self):

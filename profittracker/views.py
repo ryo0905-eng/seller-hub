@@ -237,6 +237,18 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
     def add_to_group(groups, key, amount):
         groups[key] = groups.get(key, 0) + amount
 
+    @staticmethod
+    def percentage(part, total):
+        if total == 0:
+            return Decimal("0.0")
+        return (Decimal(part) / Decimal(total) * Decimal("100")).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+
+    @staticmethod
+    def average_yen(total, count):
+        if count == 0:
+            return None
+        return int((Decimal(total) / Decimal(count)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
     def get_date_range(self):
         today = timezone.localdate()
         period = self.request.GET.get("period", "all")
@@ -280,6 +292,48 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             return False
         return True
 
+    def performance_rows(self, products, key_func):
+        groups = {}
+        for product in products:
+            if product.actual_profit_jpy is None:
+                continue
+            key = key_func(product)
+            row = groups.setdefault(
+                key,
+                {
+                    "label": key,
+                    "sales_count": 0,
+                    "total_profit": 0,
+                    "total_roi": Decimal("0.0"),
+                    "loss_count": 0,
+                    "days_total": 0,
+                    "days_count": 0,
+                },
+            )
+            row["sales_count"] += 1
+            row["total_profit"] += product.actual_profit_jpy
+            row["total_roi"] += product.roi
+            if product.actual_profit_jpy < 0:
+                row["loss_count"] += 1
+            if product.days_to_sell is not None:
+                row["days_total"] += product.days_to_sell
+                row["days_count"] += 1
+
+        rows = []
+        for row in groups.values():
+            rows.append(
+                {
+                    "label": row["label"],
+                    "sales_count": row["sales_count"],
+                    "total_profit": row["total_profit"],
+                    "average_profit": self.average_yen(row["total_profit"], row["sales_count"]),
+                    "average_roi": (row["total_roi"] / Decimal(row["sales_count"])).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP),
+                    "loss_rate": self.percentage(row["loss_count"], row["sales_count"]),
+                    "average_days_to_sell": round(row["days_total"] / row["days_count"], 1) if row["days_count"] else None,
+                }
+            )
+        return sorted(rows, key=lambda row: (row["total_profit"], row["sales_count"]), reverse=True)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         products = list(Product.objects.filter(owner=self.request.user))
@@ -288,10 +342,11 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         actual_products = [product for product in filtered_products if product.actual_profit_jpy is not None]
         days_to_sell = [product.days_to_sell for product in filtered_products if product.days_to_sell is not None]
         roi_values = [product.roi for product in actual_products]
+        total_actual_profit = sum(product.actual_profit_jpy for product in actual_products)
+        loss_count = sum(1 for product in actual_products if product.actual_profit_jpy < 0)
 
         monthly_profit = {}
         category_profit = {}
-        source_profit = {}
         status_counts = {label: 0 for value, label in Product.Status.choices}
 
         for product in products:
@@ -306,13 +361,24 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
                 self.add_to_group(monthly_profit, month_key, product.actual_profit_jpy)
 
             category_key = product.category or "未分類"
-            source_key = product.source or "未入力"
             self.add_to_group(category_profit, category_key, product.actual_profit_jpy)
-            self.add_to_group(source_profit, source_key, product.actual_profit_jpy)
 
         red_products = sorted(
             [product for product in actual_products if product.actual_profit_jpy < 0],
             key=lambda product: product.actual_profit_jpy,
+        )[:8]
+        underperforming_products = sorted(
+            [product for product in actual_products if product.profit_gap_jpy is not None and product.profit_gap_jpy < 0],
+            key=lambda product: product.profit_gap_jpy,
+        )[:8]
+        incomplete_actual_products = sorted(
+            [
+                product
+                for product in filtered_products
+                if product.status in {Product.Status.SOLD, Product.Status.SHIPPED} and product.actual_profit_jpy is None
+            ],
+            key=lambda product: product.sold_date or timezone.localdate(),
+            reverse=True,
         )[:8]
         long_inventory_products = sorted(
             [product for product in products if product.inventory_age_days is not None],
@@ -322,9 +388,11 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
 
         context.update(
             {
-                "total_actual_profit": sum(product.actual_profit_jpy for product in actual_products),
+                "total_actual_profit": total_actual_profit,
+                "average_actual_profit": self.average_yen(total_actual_profit, len(actual_products)),
                 "average_roi": round(sum(roi_values) / len(roi_values), 1) if roi_values else None,
                 "average_days_to_sell": round(sum(days_to_sell) / len(days_to_sell), 1) if days_to_sell else None,
+                "loss_rate": self.percentage(loss_count, len(actual_products)) if actual_products else None,
                 "inventory_value": sum(product.inventory_value_jpy for product in products),
                 "actual_sales_count": len(actual_products),
                 "period": period,
@@ -336,8 +404,11 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
                 "category_profit_values": list(category_profit.values()),
                 "status_count_labels": list(status_counts.keys()),
                 "status_count_values": list(status_counts.values()),
-                "source_profit_rows": sorted(source_profit.items(), key=lambda item: item[1], reverse=True)[:8],
+                "source_profit_rows": self.performance_rows(actual_products, lambda product: product.source or "未入力")[:8],
+                "category_performance_rows": self.performance_rows(actual_products, lambda product: product.category or "未分類")[:8],
                 "red_products": red_products,
+                "underperforming_products": underperforming_products,
+                "incomplete_actual_products": incomplete_actual_products,
                 "long_inventory_products": long_inventory_products,
             }
         )

@@ -937,6 +937,11 @@ main.container {
     padding: 18px;
 }
 
+.analytics-panel.attention-panel {
+    background: #fffaf0;
+    border-color: #f4df9e;
+}
+
 .panel-heading {
     align-items: flex-start;
     display: flex;
@@ -977,7 +982,9 @@ main.container {
 
 .compact-table thead th,
 .compact-table tbody td {
+    font-size: 0.86rem;
     padding: 12px;
+    white-space: nowrap;
 }
 
 .insight-row {
