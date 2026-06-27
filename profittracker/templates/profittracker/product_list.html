@@ -66,6 +66,7 @@
         <label class="form-label" for="sort">並び替え</label>
         <select class="form-select" id="sort" name="sort">
             <option value="updated" {% if current_sort == "updated" %}selected{% endif %}>更新が新しい順</option>
+            <option value="sku_asc" {% if current_sort == "sku_asc" %}selected{% endif %}>SKU順</option>
             <option value="age_desc" {% if current_sort == "age_desc" %}selected{% endif %}>在庫日数が長い順</option>
             <option value="profit_asc" {% if current_sort == "profit_asc" %}selected{% endif %}>想定利益が低い順</option>
             <option value="profit_rate_asc" {% if current_sort == "profit_rate_asc" %}selected{% endif %}>利益率が低い順</option>

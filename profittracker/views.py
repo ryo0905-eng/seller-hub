@@ -164,6 +164,8 @@ class ProductListView(OwnerQuerysetMixin, ListView):
 
     def sort_products(self, products):
         sort = self.request.GET.get("sort", "updated")
+        if sort == "sku_asc":
+            return sorted(products, key=lambda product: (not product.sku, (product.sku or "").casefold()))
         if sort == "age_desc":
             return sorted(products, key=lambda product: product.inventory_age_days or -1, reverse=True)
         if sort == "profit_asc":

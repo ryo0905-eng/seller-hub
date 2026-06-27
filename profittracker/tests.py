@@ -298,6 +298,43 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "Listed Item")
         self.assertNotContains(response, "Sold Item")
 
+    def test_product_list_sorts_by_sku(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        Product.objects.create(
+            owner=user,
+            sku="B-002",
+            title="Second SKU Item",
+            purchase_price_jpy=12000,
+            expected_sale_price_usd=Decimal("200.00"),
+            shipping_cost_jpy=3000,
+            exchange_rate=Decimal("150.00"),
+        )
+        Product.objects.create(
+            owner=user,
+            sku="A-001",
+            title="First SKU Item",
+            purchase_price_jpy=8000,
+            expected_sale_price_usd=Decimal("120.00"),
+            shipping_cost_jpy=2500,
+            exchange_rate=Decimal("150.00"),
+        )
+        Product.objects.create(
+            owner=user,
+            title="No SKU Item",
+            purchase_price_jpy=7000,
+            expected_sale_price_usd=Decimal("100.00"),
+            shipping_cost_jpy=2000,
+            exchange_rate=Decimal("150.00"),
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("product_list"), {"sort": "sku_asc"})
+
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertLess(content.index("First SKU Item"), content.index("Second SKU Item"))
+        self.assertLess(content.index("Second SKU Item"), content.index("No SKU Item"))
+
     def test_exchange_rate_api_requires_login(self):
         response = self.client.get(reverse("exchange_rate_api"))
         self.assertEqual(response.status_code, 302)
