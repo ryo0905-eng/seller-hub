@@ -455,75 +455,45 @@ main.container {
 .status-timeline {
     align-items: center;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.28rem 0;
-    margin-bottom: 8px;
+    gap: 10px;
+    margin-bottom: 6px;
     max-width: 100%;
+}
+
+.status-progress {
+    align-items: center;
+    display: inline-flex;
+    gap: 5px;
+    min-width: 84px;
 }
 
 .status-step {
-    align-items: center;
-    color: #9ca3af;
-    display: inline-flex;
-    flex: 0 0 auto;
-    font-size: 0.72rem;
-    font-weight: 850;
-    line-height: 1;
-    max-width: 100%;
-    white-space: nowrap;
-}
-
-.status-step:not(:last-child)::after {
     background: #d7dde6;
-    content: "";
-    display: inline-block;
-    height: 2px;
-    margin: 0 7px;
-    width: 24px;
-}
-
-.status-step-dot {
-    background: #d7dde6;
-    border: 2px solid #fff;
     border-radius: 999px;
-    box-shadow: 0 0 0 1px #d7dde6;
-    flex: 0 0 auto;
-    height: 10px;
-    margin-right: 5px;
-    width: 10px;
+    display: inline-block;
+    height: 6px;
+    width: 16px;
 }
 
 .status-step-done {
-    color: #657083;
-}
-
-.status-step-done .status-step-dot,
-.status-step-done:not(:last-child)::after {
     background: #9ca3af;
 }
 
 .status-step-current {
-    color: #111827;
-}
-
-.status-step-current .status-step-dot {
     background: var(--app-accent);
-    box-shadow: 0 0 0 3px rgba(245, 180, 0, 0.24);
+    width: 22px;
 }
 
-.status-step-current.status-step-listed .status-step-dot {
+.status-step-current.status-step-listed {
     background: #0ea5e9;
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
 }
 
-.status-step-current.status-step-sold .status-step-dot {
+.status-step-current.status-step-sold {
     background: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
 }
 
-.status-step-current.status-step-shipped .status-step-dot {
+.status-step-current.status-step-shipped {
     background: #8a5a00;
-    box-shadow: 0 0 0 3px rgba(138, 90, 0, 0.18);
 }
 
 .product-card-badges {
@@ -776,15 +746,6 @@ main.container {
 @media (max-width: 575.98px) {
     .decision-card {
         padding: 14px;
-    }
-
-    .status-step {
-        font-size: 0.68rem;
-    }
-
-    .status-step:not(:last-child)::after {
-        margin: 0 5px;
-        width: 12px;
     }
 
     .decision-summary {

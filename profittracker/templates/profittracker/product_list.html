@@ -94,12 +94,12 @@
                                 {% endif %}
                                 <div class="min-w-0">
                                     <div class="status-timeline" aria-label="ステータス: {{ product.get_status_display }}">
-                                        {% for step in card.status_timeline %}
-                                            <span class="status-step status-step-{{ step.state }} status-step-{{ step.value }}">
-                                                <span class="status-step-dot" aria-hidden="true"></span>
-                                                <span class="status-step-label">{{ step.label }}</span>
-                                            </span>
-                                        {% endfor %}
+                                        <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
+                                        <span class="status-progress" aria-hidden="true">
+                                            {% for step in card.status_timeline %}
+                                                <span class="status-step status-step-{{ step.state }} status-step-{{ step.value }}" title="{{ step.label }}"></span>
+                                            {% endfor %}
+                                        </span>
                                     </div>
                                     {% if product.actual_sales_channel or product.status != "sold" and product.status != "shipped" %}
                                     <div class="d-flex flex-wrap align-items-center gap-2 mb-1 product-card-badges">
