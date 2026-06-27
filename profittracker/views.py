@@ -164,6 +164,26 @@ class ProductListView(OwnerQuerysetMixin, ListView):
             "decision": decision,
         }
 
+    def status_timeline(self, product):
+        statuses = [value for value, _label in Product.Status.choices]
+        current_index = statuses.index(product.status)
+        steps = []
+        for index, (value, label) in enumerate(Product.Status.choices):
+            if index < current_index:
+                state = "done"
+            elif index == current_index:
+                state = "current"
+            else:
+                state = "pending"
+            steps.append(
+                {
+                    "value": value,
+                    "label": label,
+                    "state": state,
+                }
+            )
+        return steps
+
     def sort_products(self, products):
         sort = self.request.GET.get("sort", "updated")
         if sort == "sku_asc":
@@ -188,6 +208,7 @@ class ProductListView(OwnerQuerysetMixin, ListView):
             {
                 "product": product,
                 "pricing": self.pricing_snapshot(product, seller_settings),
+                "status_timeline": self.status_timeline(product),
             }
             for product in products
         ]

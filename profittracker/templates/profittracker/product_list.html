@@ -93,8 +93,16 @@
                                     <div class="product-thumb large placeholder">No</div>
                                 {% endif %}
                                 <div class="min-w-0">
-                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                        <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
+                                    <div class="status-timeline" aria-label="ステータス: {{ product.get_status_display }}">
+                                        {% for step in card.status_timeline %}
+                                            <span class="status-step status-step-{{ step.state }} status-step-{{ step.value }}">
+                                                <span class="status-step-dot" aria-hidden="true"></span>
+                                                <span class="status-step-label">{{ step.label }}</span>
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% if product.actual_sales_channel or product.status != "sold" and product.status != "shipped" %}
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1 product-card-badges">
                                         {% if product.actual_sales_channel %}
                                             <span class="badge channel-badge channel-{{ product.actual_sales_channel }}">売却: {{ product.get_actual_sales_channel_display }}</span>
                                         {% endif %}
@@ -102,6 +110,7 @@
                                             <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
                                         {% endif %}
                                     </div>
+                                    {% endif %}
                                     <a class="h5 fw-bold product-title-link d-block mb-1" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
                                     <div class="text-muted small text-truncate">
                                         {% if product.sku %}{{ product.sku }} / {% endif %}
