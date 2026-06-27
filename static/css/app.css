@@ -262,6 +262,23 @@ main.container {
     padding: 14px;
 }
 
+.status-filter-options {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.85rem;
+    min-height: 38px;
+}
+
+.status-filter-options .form-check {
+    margin: 0;
+}
+
+.status-filter-options .form-check-label {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .app-table {
     background: var(--app-surface);
     border: 1px solid var(--app-border);

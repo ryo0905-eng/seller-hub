@@ -66,12 +66,16 @@ class ProductListView(OwnerQuerysetMixin, ListView):
     def yen(value):
         return int(Decimal(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
+    def selected_statuses(self):
+        valid_statuses = {value for value, _label in Product.Status.choices}
+        return [status for status in self.request.GET.getlist("status") if status in valid_statuses]
+
     def get_queryset(self):
         queryset = super().get_queryset()
-        status = self.request.GET.get("status")
+        statuses = self.selected_statuses()
         query = self.request.GET.get("q", "").strip()
-        if status:
-            queryset = queryset.filter(status=status)
+        if statuses:
+            queryset = queryset.filter(status__in=statuses)
         if query:
             queryset = queryset.filter(
                 Q(title__icontains=query)
@@ -186,7 +190,7 @@ class ProductListView(OwnerQuerysetMixin, ListView):
         context["status_choices"] = Product.Status.choices
         context["products"] = products
         context["product_cards"] = product_cards
-        context["current_status"] = self.request.GET.get("status", "")
+        context["current_statuses"] = self.selected_statuses()
         context["current_query"] = self.request.GET.get("q", "").strip()
         context["current_sort"] = self.request.GET.get("sort", "updated")
         context["review_count"] = sum(1 for card in product_cards if card["pricing"]["decision"]["class"] in {"danger", "warning"})

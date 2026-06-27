@@ -257,6 +257,47 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "Vintage Watch")
         self.assertNotContains(response, "Camera Lens")
 
+    def test_product_list_filters_by_multiple_statuses(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        Product.objects.create(
+            owner=user,
+            title="Purchased Item",
+            purchase_price_jpy=12000,
+            expected_sale_price_usd=Decimal("200.00"),
+            shipping_cost_jpy=3000,
+            exchange_rate=Decimal("150.00"),
+            status=Product.Status.PURCHASED,
+        )
+        Product.objects.create(
+            owner=user,
+            title="Listed Item",
+            purchase_price_jpy=8000,
+            expected_sale_price_usd=Decimal("120.00"),
+            shipping_cost_jpy=2500,
+            exchange_rate=Decimal("150.00"),
+            status=Product.Status.LISTED,
+        )
+        Product.objects.create(
+            owner=user,
+            title="Sold Item",
+            purchase_price_jpy=7000,
+            expected_sale_price_usd=Decimal("100.00"),
+            shipping_cost_jpy=2000,
+            exchange_rate=Decimal("150.00"),
+            status=Product.Status.SOLD,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(
+            reverse("product_list"),
+            {"status": [Product.Status.PURCHASED, Product.Status.LISTED]},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Purchased Item")
+        self.assertContains(response, "Listed Item")
+        self.assertNotContains(response, "Sold Item")
+
     def test_exchange_rate_api_requires_login(self):
         response = self.client.get(reverse("exchange_rate_api"))
         self.assertEqual(response.status_code, 302)
