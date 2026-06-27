@@ -503,11 +503,12 @@ main.container {
     color: #8a5a00;
 }
 
-.status-timeline {
+.product-state-line {
     align-items: center;
     display: flex;
-    gap: 10px;
-    margin-bottom: 6px;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
     max-width: 100%;
 }
 
@@ -547,8 +548,16 @@ main.container {
     background: #8a5a00;
 }
 
-.product-card-badges {
-    margin-bottom: 6px;
+.inventory-chip {
+    background: #f8fafc;
+    border: 1px solid #eef1f5;
+    border-radius: 999px;
+    color: #657083;
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 850;
+    line-height: 1;
+    padding: 0.42rem 0.64rem;
 }
 
 .channel-badge {
@@ -644,8 +653,8 @@ main.container {
 }
 
 .decision-product .product-thumb.large {
-    height: 58px;
-    width: 58px;
+    height: 68px;
+    width: 68px;
 }
 
 .decision-summary {
@@ -673,6 +682,11 @@ main.container {
     border-color: #f4df9e;
 }
 
+.summary-tile-primary {
+    background: #f7fbf8;
+    border-color: #dbeee5;
+}
+
 .summary-tile span,
 .price-sim span,
 .actual-box span,
@@ -693,6 +707,10 @@ main.container {
     font-size: 1.08rem;
     font-weight: 850;
     line-height: 1.15;
+}
+
+.summary-tile-primary strong {
+    font-size: 1.24rem;
 }
 
 .summary-tile small,

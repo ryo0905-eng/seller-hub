@@ -93,33 +93,29 @@
                                     <div class="product-thumb large placeholder">No</div>
                                 {% endif %}
                                 <div class="min-w-0">
-                                    <div class="status-timeline" aria-label="ステータス: {{ product.get_status_display }}">
+                                    <div class="product-state-line">
                                         <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
-                                        <span class="status-progress" aria-hidden="true">
+                                        {% if product.status != "sold" and product.status != "shipped" %}
+                                            <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
+                                        {% endif %}
+                                        <span class="inventory-chip">{% if product.inventory_age_days != None %}在庫{{ product.inventory_age_days }}日{% else %}在庫未入力{% endif %}</span>
+                                        <span class="status-progress" aria-label="ステータス進捗">
                                             {% for step in card.status_timeline %}
                                                 <span class="status-step status-step-{{ step.state }} status-step-{{ step.value }}" title="{{ step.label }}"></span>
                                             {% endfor %}
                                         </span>
-                                    </div>
-                                    {% if product.actual_sales_channel or product.status != "sold" and product.status != "shipped" %}
-                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1 product-card-badges">
                                         {% if product.actual_sales_channel %}
                                             <span class="badge channel-badge channel-{{ product.actual_sales_channel }}">売却: {{ product.get_actual_sales_channel_display }}</span>
                                         {% endif %}
-                                        {% if product.status != "sold" and product.status != "shipped" %}
-                                            <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
-                                        {% endif %}
                                     </div>
-                                    {% endif %}
                                     <a class="h5 fw-bold product-title-link d-block mb-1" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
                                     <div class="text-muted small text-truncate">
                                         {% if product.sku %}{{ product.sku }} / {% endif %}
                                         {% if product.brand %}{{ product.brand }} / {% endif %}
                                         {% if product.category %}{{ product.category }} / {% endif %}
-                                        {% if product.source %}{{ product.source }} / {% endif %}
-                                        {% if product.inventory_age_days != None %}在庫{{ product.inventory_age_days }}日{% else %}在庫未入力{% endif %}
+                                        {% if product.source %}{{ product.source }}{% endif %}
                                         {% if product.purchase_url %}
-                                            / <a class="source-link" href="{{ product.purchase_url }}" target="_blank" rel="noopener">仕入れ元</a>
+                                            {% if product.source %} / {% endif %}<a class="source-link" href="{{ product.purchase_url }}" target="_blank" rel="noopener">仕入れ元</a>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -142,16 +138,16 @@
                                 <small>{% if product.expected_sale_price_usd != None %}${{ product.expected_sale_price_usd }}{% else %}{{ product.ebay_fee_rate }}%手数料{% endif %}</small>
                             </div>
                             <div class="summary-tile">
-                                <span>赤字売価</span>
+                                <span>黒字ライン</span>
                                 <strong>{% if pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円{% else %}-{% endif %}</strong>
                                 <small>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% elif pricing.breakeven_jpy != None %}以上で黒字{% else %}計算不可{% endif %}</small>
                             </div>
-                            <div class="summary-tile">
+                            <div class="summary-tile summary-tile-primary">
                                 <span>想定利益率</span>
                                 <strong class="{% if product.profit_rate < 0 %}text-danger{% else %}text-success{% endif %}">{{ product.profit_rate }}%</strong>
                                 <small>{% if product.expected_profit_jpy > 0 %}+{% endif %}{{ product.expected_profit_jpy|floatformat:0 }}円</small>
                             </div>
-                            <div class="summary-tile">
+                            <div class="summary-tile summary-tile-primary">
                                 <span>想定ROI</span>
                                 <strong class="{% if product.roi < 0 %}text-danger{% else %}text-success{% endif %}">{{ product.roi }}%</strong>
                                 <small>投資回収率</small>
