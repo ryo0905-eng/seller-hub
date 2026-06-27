@@ -61,6 +61,7 @@ class OwnerQuerysetMixin(LoginRequiredMixin):
 class ProductListView(OwnerQuerysetMixin, ListView):
     template_name = "profittracker/product_list.html"
     context_object_name = "products"
+    default_visible_statuses = (Product.Status.PURCHASED, Product.Status.LISTED)
 
     @staticmethod
     def yen(value):
@@ -68,14 +69,15 @@ class ProductListView(OwnerQuerysetMixin, ListView):
 
     def selected_statuses(self):
         valid_statuses = {value for value, _label in Product.Status.choices}
+        if "status" not in self.request.GET:
+            return list(self.default_visible_statuses)
         return [status for status in self.request.GET.getlist("status") if status in valid_statuses]
 
     def get_queryset(self):
         queryset = super().get_queryset()
         statuses = self.selected_statuses()
         query = self.request.GET.get("q", "").strip()
-        if statuses:
-            queryset = queryset.filter(status__in=statuses)
+        queryset = queryset.filter(status__in=statuses)
         if query:
             queryset = queryset.filter(
                 Q(title__icontains=query)
