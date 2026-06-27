@@ -266,17 +266,68 @@ main.container {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem 0.85rem;
+    gap: 0.45rem;
     min-height: 38px;
 }
 
-.status-filter-options .form-check {
-    margin: 0;
+.status-filter-option {
+    flex: 0 0 auto;
 }
 
-.status-filter-options .form-check-label {
-    font-weight: 700;
+.status-filter-input {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+.status-filter-chip {
+    background: #fff;
+    border: 1px solid #d7dce5;
+    border-radius: 999px;
+    color: #657083;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.9rem;
+    font-weight: 850;
+    line-height: 1;
+    padding: 0.64rem 0.9rem;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
     white-space: nowrap;
+}
+
+.status-filter-chip:hover {
+    border-color: #aeb7c5;
+    color: var(--app-text);
+}
+
+.status-filter-input:focus-visible + .status-filter-chip {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+
+.status-filter-input:checked + .status-filter-chip {
+    background: #111827;
+    border-color: #111827;
+    color: #fff;
+}
+
+.status-filter-input[value="purchased"]:checked + .status-filter-chip {
+    background: #394150;
+    border-color: #394150;
+}
+
+.status-filter-input[value="listed"]:checked + .status-filter-chip {
+    background: #0ea5e9;
+    border-color: #0ea5e9;
+}
+
+.status-filter-input[value="sold"]:checked + .status-filter-chip {
+    background: #0f766e;
+    border-color: #0f766e;
+}
+
+.status-filter-input[value="shipped"]:checked + .status-filter-chip {
+    background: #8a5a00;
+    border-color: #8a5a00;
 }
 
 .app-table {

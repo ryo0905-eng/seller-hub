@@ -217,6 +217,7 @@ class ProductViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Camera Lens")
         self.assertContains(response, "出品中")
+        self.assertContains(response, "status-filter-chip")
         self.assertContains(response, "status-timeline")
         self.assertContains(response, "status-progress")
         self.assertContains(response, "status-step-current status-step-listed")
