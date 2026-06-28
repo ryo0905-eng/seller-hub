@@ -98,7 +98,9 @@
                                         {% if product.status != "sold" %}
                                             <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
                                         {% endif %}
-                                        <span class="inventory-chip">{% if product.inventory_age_days != None %}在庫{{ product.inventory_age_days }}日{% else %}在庫未入力{% endif %}</span>
+                                        {% if product.status != "sold" %}
+                                            <span class="inventory-chip">{% if product.inventory_age_days != None %}在庫{{ product.inventory_age_days }}日{% else %}在庫未入力{% endif %}</span>
+                                        {% endif %}
                                         <span class="status-progress" aria-label="ステータス進捗">
                                             {% for step in card.status_timeline %}
                                                 <span class="status-step status-step-{{ step.state }} status-step-{{ step.value }}" title="{{ step.label }}"></span>

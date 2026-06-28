@@ -343,6 +343,7 @@ class ProductViewTests(TestCase):
             shipping_cost_jpy=3000,
             exchange_rate=Decimal("150.00"),
             status=Product.Status.LISTED,
+            purchase_date=date(2020, 1, 1),
         )
         Product.objects.create(
             owner=user,
@@ -352,6 +353,7 @@ class ProductViewTests(TestCase):
             shipping_cost_jpy=2500,
             exchange_rate=Decimal("150.00"),
             status=Product.Status.SOLD,
+            sold_date=date(2026, 6, 15),
         )
         self.client.force_login(user)
 
@@ -363,6 +365,7 @@ class ProductViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Active Item")
         self.assertContains(response, "Sold Item")
+        self.assertNotContains(response, "在庫未入力")
 
     def test_product_list_filters_by_multiple_statuses(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")
