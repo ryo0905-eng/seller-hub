@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import IntegrityError
 from django.db.models import Q
 from django.db.models import Count
 from django.http import HttpResponse, JsonResponse
@@ -552,6 +553,11 @@ class ProductDetailView(OwnerQuerysetMixin, DetailView):
 
 
 class ProductFormContextMixin:
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["owner"] = self.request.user
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["brand_keywords"] = SellerSettings.get_for_user(self.request.user).brand_keyword_list
@@ -751,7 +757,7 @@ class ProductCsvImportView(LoginRequiredMixin, FormView):
                     values["status"] = Product.Status.SOLD
                 Product.objects.create(owner=self.request.user, **values)
                 imported += 1
-            except (ValueError, InvalidOperation, TypeError) as exc:
+            except (IntegrityError, ValueError, InvalidOperation, TypeError) as exc:
                 errors.append(f"{index}行目: {exc}")
 
         if errors:

@@ -49,7 +49,8 @@ class ProductForm(forms.ModelForm):
             "actual_ebay_fee_jpy": "未入力の場合は、販売手数料率を基準に実売価格から自動概算します。",
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, owner=None, **kwargs):
+        self.owner = owner or getattr(kwargs.get("instance"), "owner", None)
         super().__init__(*args, **kwargs)
         self.fields["expected_sale_price_usd"].required = False
         self.fields["expected_sale_price_jpy"].required = False
@@ -102,9 +103,18 @@ class ProductForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        sku = (cleaned_data.get("sku") or "").strip()
         usd = cleaned_data.get("expected_sale_price_usd")
         jpy = cleaned_data.get("expected_sale_price_jpy")
         exchange_rate = cleaned_data.get("exchange_rate")
+
+        if sku and self.owner:
+            duplicate_skus = Product.objects.filter(owner=self.owner, sku=sku)
+            if self.instance.pk:
+                duplicate_skus = duplicate_skus.exclude(pk=self.instance.pk)
+            if duplicate_skus.exists():
+                self.add_error("sku", "同じSKUの商品がすでに登録されています。")
+            cleaned_data["sku"] = sku
 
         if usd is None and jpy is None:
             self.add_error("expected_sale_price_jpy", "想定売価はUSDまたはJPYのどちらかを入力してください。")

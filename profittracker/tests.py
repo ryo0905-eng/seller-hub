@@ -79,6 +79,94 @@ class ProductCalculationTests(TestCase):
         self.assertEqual(form.cleaned_data["expected_sale_price_usd"], None)
         self.assertEqual(form.cleaned_data["expected_sale_price_jpy"], 15500)
 
+    def test_product_form_rejects_duplicate_sku_for_same_owner(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        Product.objects.create(
+            owner=user,
+            sku="20260628-001",
+            title="Existing SKU Item",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+        )
+
+        form = ProductForm(
+            owner=user,
+            data={
+                "sku": "20260628-001",
+                "title": "Duplicate SKU Item",
+                "condition": Product.Condition.USED,
+                "quantity": "1",
+                "purchase_price_jpy": "7000",
+                "purchase_shipping_jpy": "0",
+                "other_cost_jpy": "0",
+                "expected_sale_price_usd": "",
+                "expected_sale_price_jpy": "15500",
+                "shipping_cost_jpy": "2500",
+                "exchange_rate": "155.00",
+                "ebay_fee_rate": "15.00",
+                "status": Product.Status.PURCHASED,
+            },
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("同じSKUの商品がすでに登録されています。", form.errors["sku"])
+
+    def test_product_form_allows_same_sku_for_different_owner_and_same_instance(self):
+        owner = get_user_model().objects.create_user(username="owner", password="pass")
+        other_owner = get_user_model().objects.create_user(username="other-owner", password="pass")
+        product = Product.objects.create(
+            owner=owner,
+            sku="20260628-001",
+            title="Existing SKU Item",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+        )
+
+        other_owner_form = ProductForm(
+            owner=other_owner,
+            data={
+                "sku": "20260628-001",
+                "title": "Other Owner SKU Item",
+                "condition": Product.Condition.USED,
+                "quantity": "1",
+                "purchase_price_jpy": "7000",
+                "purchase_shipping_jpy": "0",
+                "other_cost_jpy": "0",
+                "expected_sale_price_usd": "",
+                "expected_sale_price_jpy": "15500",
+                "shipping_cost_jpy": "2500",
+                "exchange_rate": "155.00",
+                "ebay_fee_rate": "15.00",
+                "status": Product.Status.PURCHASED,
+            },
+        )
+        same_instance_form = ProductForm(
+            owner=owner,
+            instance=product,
+            data={
+                "sku": "20260628-001",
+                "title": "Existing SKU Item",
+                "condition": Product.Condition.USED,
+                "quantity": "1",
+                "purchase_price_jpy": "1000",
+                "purchase_shipping_jpy": "0",
+                "other_cost_jpy": "0",
+                "expected_sale_price_usd": "20.00",
+                "expected_sale_price_jpy": "3000",
+                "shipping_cost_jpy": "500",
+                "exchange_rate": "150.00",
+                "ebay_fee_rate": "15.00",
+                "status": Product.Status.PURCHASED,
+            },
+        )
+
+        self.assertTrue(other_owner_form.is_valid(), other_owner_form.errors)
+        self.assertTrue(same_instance_form.is_valid(), same_instance_form.errors)
+
     def test_product_form_initializes_expected_sale_price_jpy_input(self):
         user = get_user_model().objects.create_user(username="jpy-seller", password="pass")
         product = Product.objects.create(

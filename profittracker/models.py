@@ -108,6 +108,13 @@ class Product(models.Model):
 
     class Meta:
         ordering = ["-updated_at", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["owner", "sku"],
+                condition=~models.Q(sku=""),
+                name="unique_owner_sku_when_set",
+            )
+        ]
         verbose_name = "商品"
         verbose_name_plural = "商品"
 
