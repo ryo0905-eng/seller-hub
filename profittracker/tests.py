@@ -571,6 +571,71 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "brand-keywords-data")
         self.assertContains(response, "Bottega Veneta")
 
+    @patch("profittracker.views.timezone.localdate", return_value=date(2026, 6, 28))
+    def test_product_create_suggests_next_sku(self, mocked_localdate):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        Product.objects.create(
+            owner=user,
+            sku="20260628-001",
+            title="Existing Item",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+        )
+        Product.objects.create(
+            owner=user,
+            sku="20260628-003",
+            title="Another Existing Item",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("product_create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="sku" value="20260628-004"')
+        self.assertContains(response, "sku_helper.js")
+
+    def test_product_create_autofills_blank_sku_on_save(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        Product.objects.create(
+            owner=user,
+            sku="20260628-001",
+            title="Existing Item",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("product_create"),
+            {
+                "sku": "",
+                "title": "Auto SKU Item",
+                "condition": Product.Condition.USED,
+                "quantity": "1",
+                "purchase_price_jpy": "7000",
+                "purchase_shipping_jpy": "0",
+                "other_cost_jpy": "0",
+                "expected_sale_price_usd": "",
+                "expected_sale_price_jpy": "12000",
+                "shipping_cost_jpy": "1000",
+                "exchange_rate": "",
+                "ebay_fee_rate": "10.00",
+                "status": Product.Status.PURCHASED,
+                "purchase_date": "2026-06-28",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Product.objects.filter(owner=user, title="Auto SKU Item", sku="20260628-002").exists())
+
     def test_product_create_accepts_simulator_initial_values(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")
         self.client.force_login(user)

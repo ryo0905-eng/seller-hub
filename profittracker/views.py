@@ -1,6 +1,7 @@
 import csv
 import io
 import json
+import re
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from urllib.error import URLError
@@ -553,6 +554,17 @@ class ProductCreateView(ProductFormContextMixin, LoginRequiredMixin, CreateView)
     template_name = "profittracker/product_form.html"
     success_url = reverse_lazy("product_list")
 
+    def next_sku(self, target_date=None):
+        target_date = target_date or timezone.localdate()
+        prefix = target_date.strftime("%Y%m%d")
+        pattern = re.compile(rf"^{prefix}-(\d+)$")
+        serials = []
+        for sku in self.request.user.products.filter(sku__startswith=f"{prefix}-").values_list("sku", flat=True):
+            match = pattern.match(sku or "")
+            if match:
+                serials.append(int(match.group(1)))
+        return f"{prefix}-{(max(serials) if serials else 0) + 1:03d}"
+
     def get_initial(self):
         initial = super().get_initial()
         seller_settings = SellerSettings.get_for_user(self.request.user)
@@ -561,10 +573,12 @@ class ProductCreateView(ProductFormContextMixin, LoginRequiredMixin, CreateView)
                 "shipping_cost_jpy": seller_settings.default_shipping_cost_jpy,
                 "exchange_rate": seller_settings.default_exchange_rate,
                 "ebay_fee_rate": seller_settings.default_ebay_fee_rate,
+                "sku": self.next_sku(),
             }
         )
         for field in [
             "title",
+            "sku",
             "purchase_price_jpy",
             "expected_sale_price_usd",
             "expected_sale_price_jpy",
@@ -578,6 +592,8 @@ class ProductCreateView(ProductFormContextMixin, LoginRequiredMixin, CreateView)
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
+        if not form.instance.sku:
+            form.instance.sku = self.next_sku(form.cleaned_data.get("purchase_date"))
         messages.success(self.request, "商品を登録しました。")
         return super().form_valid(form)
 
