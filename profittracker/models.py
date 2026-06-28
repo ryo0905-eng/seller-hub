@@ -58,7 +58,6 @@ class Product(models.Model):
         PURCHASED = "purchased", "仕入れ済み"
         LISTED = "listed", "出品中"
         SOLD = "sold", "売却済み"
-        SHIPPED = "shipped", "発送済み"
 
     class Condition(models.TextChoices):
         NEW = "new", "新品"
@@ -249,6 +248,6 @@ class Product(models.Model):
 
     @property
     def inventory_value_jpy(self):
-        if self.status in {self.Status.SOLD, self.Status.SHIPPED}:
+        if self.status == self.Status.SOLD:
             return 0
         return self.purchase_price_jpy + self.purchase_shipping_jpy + self.other_cost_jpy

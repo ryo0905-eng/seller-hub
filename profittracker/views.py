@@ -127,7 +127,7 @@ class ProductListView(OwnerQuerysetMixin, ListView):
         age = product.inventory_age_days
         profit_rate = product.profit_rate
 
-        if product.status in {Product.Status.SOLD, Product.Status.SHIPPED}:
+        if product.status == Product.Status.SOLD:
             if product.actual_profit_jpy is not None and product.actual_profit_jpy < 0:
                 decision = {"label": "赤字確定", "class": "danger", "message": "実績を分析"}
             else:
@@ -375,7 +375,7 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             [
                 product
                 for product in filtered_products
-                if product.status in {Product.Status.SOLD, Product.Status.SHIPPED} and product.actual_profit_jpy is None
+                if product.status == Product.Status.SOLD and product.actual_profit_jpy is None
             ],
             key=lambda product: product.sold_date or timezone.localdate(),
             reverse=True,
@@ -633,7 +633,6 @@ class ProductCsvExportView(LoginRequiredMixin, View):
         "purchase_date",
         "listed_date",
         "sold_date",
-        "shipped_date",
         "actual_sales_channel",
         "actual_sale_price_usd",
         "actual_sale_price_jpy_manual",
@@ -644,7 +643,6 @@ class ProductCsvExportView(LoginRequiredMixin, View):
         "purchase_url",
         "image_url",
         "buyer_country",
-        "tracking_number",
         "status",
         "memo",
     ]
@@ -723,6 +721,8 @@ class ProductCsvImportView(LoginRequiredMixin, FormView):
                     if field in model_fields and field not in {"id", "owner", "created_at", "updated_at"}
                 }
                 values = {key: value for key, value in values.items() if value is not None}
+                if values.get("status") == "shipped" or values.get("sold_date"):
+                    values["status"] = Product.Status.SOLD
                 Product.objects.create(owner=self.request.user, **values)
                 imported += 1
             except (ValueError, InvalidOperation, TypeError) as exc:

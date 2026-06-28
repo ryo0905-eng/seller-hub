@@ -325,11 +325,6 @@ main.container {
     border-color: #0f766e;
 }
 
-.status-filter-input[value="shipped"]:checked + .status-filter-chip {
-    background: #8a5a00;
-    border-color: #8a5a00;
-}
-
 .app-table {
     background: var(--app-surface);
     border: 1px solid var(--app-border);
@@ -498,11 +493,6 @@ main.container {
     color: #0f766e;
 }
 
-.status-shipped {
-    background: #fff7db;
-    color: #8a5a00;
-}
-
 .product-state-line {
     align-items: center;
     display: flex;
@@ -542,10 +532,6 @@ main.container {
 
 .status-step-current.status-step-sold {
     background: #10b981;
-}
-
-.status-step-current.status-step-shipped {
-    background: #8a5a00;
 }
 
 .inventory-chip {

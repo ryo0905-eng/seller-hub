@@ -66,7 +66,6 @@
                 <dt>数量</dt><dd>{{ product.quantity }}</dd>
                 <dt>仕入先</dt><dd>{{ product.source|default:"-" }}</dd>
                 <dt>販売先国</dt><dd>{{ product.buyer_country|default:"-" }}</dd>
-                <dt>追跡番号</dt><dd>{{ product.tracking_number|default:"-" }}</dd>
             </dl>
         </div>
     </div>
@@ -77,7 +76,6 @@
                 <dt>仕入れ日</dt><dd>{{ product.purchase_date|default:"-" }}</dd>
                 <dt>出品日</dt><dd>{{ product.listed_date|default:"-" }}</dd>
                 <dt>売却日</dt><dd>{{ product.sold_date|default:"-" }}</dd>
-                <dt>発送日</dt><dd>{{ product.shipped_date|default:"-" }}</dd>
                 <dt>販売日数</dt><dd>{% if product.days_to_sell != None %}{{ product.days_to_sell }}日{% else %}-{% endif %}</dd>
                 <dt>保有日数</dt><dd>{% if product.holding_days != None %}{{ product.holding_days }}日{% else %}-{% endif %}</dd>
             </dl>

@@ -95,7 +95,7 @@
                                 <div class="min-w-0">
                                     <div class="product-state-line">
                                         <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
-                                        {% if product.status != "sold" and product.status != "shipped" %}
+                                        {% if product.status != "sold" %}
                                             <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
                                         {% endif %}
                                         <span class="inventory-chip">{% if product.inventory_age_days != None %}在庫{{ product.inventory_age_days }}日{% else %}在庫未入力{% endif %}</span>

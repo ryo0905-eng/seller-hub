@@ -26,7 +26,6 @@ class ProductForm(forms.ModelForm):
             "purchase_date",
             "listed_date",
             "sold_date",
-            "shipped_date",
             "actual_sales_channel",
             "actual_sale_price_usd",
             "actual_sale_price_jpy_manual",
@@ -37,7 +36,6 @@ class ProductForm(forms.ModelForm):
             "purchase_url",
             "image_url",
             "buyer_country",
-            "tracking_number",
             "status",
             "memo",
         ]
@@ -45,7 +43,6 @@ class ProductForm(forms.ModelForm):
             "purchase_date": forms.DateInput(attrs={"type": "date"}),
             "listed_date": forms.DateInput(attrs={"type": "date"}),
             "sold_date": forms.DateInput(attrs={"type": "date"}),
-            "shipped_date": forms.DateInput(attrs={"type": "date"}),
             "memo": forms.Textarea(attrs={"rows": 4}),
         }
         help_texts = {
@@ -119,6 +116,9 @@ class ProductForm(forms.ModelForm):
                 return cleaned_data
             cleaned_data["expected_sale_price_jpy"] = self.yen(usd * exchange_rate)
 
+        if cleaned_data.get("sold_date"):
+            cleaned_data["status"] = Product.Status.SOLD
+
         return cleaned_data
 
 
@@ -130,12 +130,9 @@ class ProductQuickUpdateForm(forms.ModelForm):
             "actual_sales_channel",
             "actual_sale_price_usd",
             "sold_date",
-            "shipped_date",
-            "tracking_number",
         ]
         widgets = {
             "sold_date": forms.DateInput(attrs={"type": "date"}),
-            "shipped_date": forms.DateInput(attrs={"type": "date"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -143,11 +140,15 @@ class ProductQuickUpdateForm(forms.ModelForm):
         self.fields["actual_sales_channel"].widget.attrs["placeholder"] = "売れたチャネル"
         self.fields["actual_sale_price_usd"].widget.attrs["placeholder"] = "実売USD"
         self.fields["sold_date"].widget.attrs["placeholder"] = "売却日"
-        self.fields["shipped_date"].widget.attrs["placeholder"] = "発送日"
-        self.fields["tracking_number"].widget.attrs["placeholder"] = "追跡番号"
         for field in self.fields.values():
             css = "form-select form-select-sm" if isinstance(field.widget, forms.Select) else "form-control form-control-sm"
             field.widget.attrs["class"] = css
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("sold_date"):
+            cleaned_data["status"] = Product.Status.SOLD
+        return cleaned_data
 
 
 class ProductCsvImportForm(forms.Form):

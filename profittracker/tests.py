@@ -145,6 +145,28 @@ class ProductCalculationTests(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.cleaned_data["actual_sales_channel"], Product.SalesChannel.MERCARI)
 
+    def test_product_form_marks_item_sold_when_sold_date_is_entered(self):
+        form = ProductForm(
+            data={
+                "title": "Auto Sold Item",
+                "condition": Product.Condition.USED,
+                "quantity": "1",
+                "purchase_price_jpy": "7000",
+                "purchase_shipping_jpy": "0",
+                "other_cost_jpy": "0",
+                "expected_sale_price_usd": "",
+                "expected_sale_price_jpy": "12000",
+                "shipping_cost_jpy": "1000",
+                "exchange_rate": "",
+                "ebay_fee_rate": "10.00",
+                "status": Product.Status.LISTED,
+                "sold_date": "2026-06-20",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["status"], Product.Status.SOLD)
+
     def test_actual_ebay_fee_defaults_to_15_percent_estimate_when_blank(self):
         product = Product(
             owner=get_user_model().objects.create_user(username="seller", password="pass"),
@@ -281,15 +303,6 @@ class ProductViewTests(TestCase):
             exchange_rate=Decimal("150.00"),
             status=Product.Status.SOLD,
         )
-        Product.objects.create(
-            owner=user,
-            title="Shipped Item",
-            purchase_price_jpy=7000,
-            expected_sale_price_usd=Decimal("100.00"),
-            shipping_cost_jpy=2000,
-            exchange_rate=Decimal("150.00"),
-            status=Product.Status.SHIPPED,
-        )
         self.client.force_login(user)
 
         response = self.client.get(reverse("product_list"))
@@ -297,7 +310,6 @@ class ProductViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Active Item")
         self.assertNotContains(response, "Sold Item")
-        self.assertNotContains(response, "Shipped Item")
 
     def test_product_list_can_include_sold_statuses_when_selected(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")
@@ -679,11 +691,9 @@ class ProductViewTests(TestCase):
         response = self.client.post(
             reverse("product_quick_update", args=[product.pk]),
             {
-                "status": Product.Status.SOLD,
+                "status": Product.Status.LISTED,
                 "actual_sale_price_usd": "30.00",
                 "sold_date": "2026-06-20",
-                "shipped_date": "",
-                "tracking_number": "TRACK123",
             },
         )
 
@@ -692,7 +702,6 @@ class ProductViewTests(TestCase):
         self.assertEqual(product.status, Product.Status.SOLD)
         self.assertEqual(product.actual_sale_price_usd, Decimal("30.00"))
         self.assertEqual(product.sold_date, date(2026, 6, 20))
-        self.assertEqual(product.tracking_number, "TRACK123")
 
     def test_csv_export_and_import(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")
