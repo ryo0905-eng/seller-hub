@@ -372,6 +372,15 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             [product for product in actual_products if product.profit_gap_jpy is not None and product.profit_gap_jpy < 0],
             key=lambda product: product.profit_gap_jpy,
         )[:8]
+        sold_products = sorted(
+            [
+                product
+                for product in filtered_products
+                if product.status == Product.Status.SOLD or product.sold_date is not None
+            ],
+            key=lambda product: product.sold_date or timezone.datetime.min.date(),
+            reverse=True,
+        )
         incomplete_actual_products = sorted(
             [
                 product
@@ -409,6 +418,7 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
                 "category_performance_rows": self.performance_rows(actual_products, lambda product: product.category or "未分類")[:8],
                 "red_products": red_products,
                 "underperforming_products": underperforming_products,
+                "sold_products": sold_products,
                 "incomplete_actual_products": incomplete_actual_products,
                 "long_inventory_products": long_inventory_products,
             }

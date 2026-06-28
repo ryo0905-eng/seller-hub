@@ -222,6 +222,56 @@
     </div>
 </div>
 
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="analytics-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">売却済み商品一覧</h2>
+                    <p class="text-muted small mb-0">期間内に売れた商品を、実績入力の状況までまとめて確認します。</p>
+                </div>
+            </div>
+            {% if sold_products %}
+                <div class="table-responsive">
+                    <table class="table app-table compact-table mb-0">
+                        <thead>
+                        <tr>
+                            <th>商品</th>
+                            <th>売却日</th>
+                            <th>チャネル</th>
+                            <th class="text-end">実売価格</th>
+                            <th class="text-end">実利益</th>
+                            <th class="text-end">ROI</th>
+                            <th class="text-end">販売日数</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for product in sold_products %}
+                            <tr>
+                                <td>
+                                    <a class="fw-semibold text-decoration-none" href="{% url 'product_update' product.pk %}">{{ product.title }}</a>
+                                    <div class="text-muted small">{{ product.sku }}{% if product.category %} / {{ product.category }}{% endif %}{% if product.source %} / {{ product.source }}{% endif %}</div>
+                                </td>
+                                <td>{% if product.sold_date %}{{ product.sold_date|date:"Y-m-d" }}{% else %}-{% endif %}</td>
+                                <td>{% if product.actual_sales_channel %}{{ product.get_actual_sales_channel_display }}{% else %}-{% endif %}</td>
+                                <td class="text-end">{% if product.actual_sale_price_jpy != None %}{{ product.actual_sale_price_jpy|floatformat:0 }}円{% else %}-{% endif %}</td>
+                                <td class="text-end fw-bold {% if product.actual_profit_jpy != None and product.actual_profit_jpy < 0 %}text-danger{% elif product.actual_profit_jpy != None %}text-success{% endif %}">
+                                    {% if product.actual_profit_jpy != None %}{{ product.actual_profit_jpy|floatformat:0 }}円{% else %}-{% endif %}
+                                </td>
+                                <td class="text-end">{% if product.actual_profit_jpy != None %}{{ product.roi }}%{% else %}-{% endif %}</td>
+                                <td class="text-end">{% if product.days_to_sell != None %}{{ product.days_to_sell }}日{% else %}-{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="mini-empty">期間内に売却済みの商品はありません。</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 <div class="row g-3">
     <div class="col-12 col-xl-4">
         <div class="analytics-panel">
