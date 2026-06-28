@@ -826,6 +826,55 @@ main.container {
     background: #fff;
 }
 
+.actual-section {
+    background: #f7fbf8;
+    border-color: #dbeee5;
+}
+
+.actual-completion {
+    align-items: center;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding: 14px 16px;
+}
+
+.actual-completion span {
+    color: var(--app-muted);
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 850;
+    margin-bottom: 3px;
+}
+
+.actual-completion strong {
+    color: var(--app-text);
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.actual-completion p {
+    color: #657083;
+    font-size: 0.86rem;
+    font-weight: 750;
+    margin: 0;
+    text-align: right;
+}
+
+.actual-completion.is-complete {
+    background: #f0f9f4;
+    border-color: #cfead9;
+}
+
+.actual-completion.is-incomplete {
+    background: #fffaf0;
+    border-color: #f4df9e;
+}
+
 .section-heading {
     align-items: flex-start;
     display: flex;
@@ -1160,5 +1209,14 @@ main.container {
 
     .form-section {
         padding: 14px;
+    }
+
+    .actual-completion {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .actual-completion p {
+        text-align: left;
     }
 }

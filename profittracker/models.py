@@ -215,6 +215,26 @@ class Product(models.Model):
         return self.actual_profit_jpy - self.expected_profit_jpy
 
     @property
+    def actual_entry_missing_labels(self):
+        if self.status != self.Status.SOLD and self.sold_date is None:
+            return []
+
+        missing = []
+        if self.sold_date is None:
+            missing.append("売却日")
+        if not self.actual_sales_channel:
+            missing.append("売れたチャネル")
+        if self.actual_sale_price_jpy is None:
+            missing.append("実売価格")
+        if self.actual_shipping_cost_jpy is None:
+            missing.append("実送料")
+        return missing
+
+    @property
+    def actual_entry_complete(self):
+        return self.status == self.Status.SOLD and not self.actual_entry_missing_labels
+
+    @property
     def roi(self):
         invested = self.purchase_price_jpy + self.purchase_shipping_jpy + self.other_cost_jpy
         if invested == 0:

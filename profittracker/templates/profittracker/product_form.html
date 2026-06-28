@@ -10,7 +10,7 @@
             <div>
                 <div class="eyebrow">Product Editor</div>
                 <h1 class="h3 fw-bold mb-0">商品{% if object %}編集{% else %}登録{% endif %}</h1>
-                <p class="text-muted mb-0 mt-2">よく使う項目だけ先に入力し、実績や発送情報は必要な時に開けます。</p>
+                <p class="text-muted mb-0 mt-2">登録に必要な情報と、売れた後の実績入力を迷わず管理します。</p>
             </div>
             <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">戻る</a>
         </div>
@@ -19,6 +19,21 @@
             <div class="card-body">
                 {% if form.non_field_errors %}
                     <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+                {% if object %}
+                    <div class="actual-completion {% if object.actual_entry_complete %}is-complete{% else %}is-incomplete{% endif %}">
+                        <div>
+                            <span>実績入力</span>
+                            <strong>{% if object.actual_entry_complete %}完了{% else %}未完了{% endif %}</strong>
+                        </div>
+                        {% if object.actual_entry_complete %}
+                            <p>実績分析に反映できる状態です。</p>
+                        {% elif object.actual_entry_missing_labels %}
+                            <p>不足: {% for label in object.actual_entry_missing_labels %}{{ label }}{% if not forloop.last %} / {% endif %}{% endfor %}</p>
+                        {% else %}
+                            <p>売却後に、売却日と実績金額を入力してください。</p>
+                        {% endif %}
+                    </div>
                 {% endif %}
                 <div class="form-section primary-section">
                     <div class="section-heading">
@@ -46,6 +61,25 @@
                     </div>
                 </div>
 
+                <div class="form-section actual-section">
+                    <div class="section-heading">
+                        <div>
+                            <div class="eyebrow">Actual result</div>
+                            <h2 class="h5 fw-bold mb-1">実績入力</h2>
+                            <p class="text-muted small mb-0">売却日を入力すると、ステータスは自動で売却済みに変わります。</p>
+                        </div>
+                    </div>
+                    <div class="row g-3 compact-form-grid">
+                        {% include "profittracker/partials/form_field.html" with field=form.sold_date %}
+                        {% include "profittracker/partials/form_field.html" with field=form.actual_sales_channel %}
+                        {% include "profittracker/partials/form_field.html" with field=form.actual_sale_price_usd %}
+                        {% include "profittracker/partials/form_field.html" with field=form.actual_sale_price_jpy_manual %}
+                        {% include "profittracker/partials/exchange_rate_field.html" with field=form.actual_exchange_rate note="実際の入金・換金レートが分かる場合はそちらを優先してください。" %}
+                        {% include "profittracker/partials/form_field.html" with field=form.actual_shipping_cost_jpy %}
+                        {% include "profittracker/partials/form_field.html" with field=form.actual_ebay_fee_jpy %}
+                    </div>
+                </div>
+
                 <div class="accordion compact-accordion" id="productDetailAccordion">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
@@ -70,20 +104,13 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSales" aria-expanded="false" aria-controls="collapseSales">
-                                出品・販売実績
+                                出品URL・販売補足
                             </button>
                         </h2>
                         <div id="collapseSales" class="accordion-collapse collapse" data-bs-parent="#productDetailAccordion">
                             <div class="accordion-body">
                                 <div class="row g-3 compact-form-grid">
                                     {% include "profittracker/partials/form_field.html" with field=form.listed_date %}
-                                    {% include "profittracker/partials/form_field.html" with field=form.sold_date %}
-                                    {% include "profittracker/partials/form_field.html" with field=form.actual_sales_channel %}
-                                    {% include "profittracker/partials/form_field.html" with field=form.actual_sale_price_usd %}
-                                    {% include "profittracker/partials/form_field.html" with field=form.actual_sale_price_jpy_manual %}
-                                    {% include "profittracker/partials/exchange_rate_field.html" with field=form.actual_exchange_rate note="実際の入金・換金レートが分かる場合はそちらを優先してください。" %}
-                                    {% include "profittracker/partials/form_field.html" with field=form.actual_ebay_fee_jpy %}
-                                    {% include "profittracker/partials/form_field.html" with field=form.actual_shipping_cost_jpy %}
                                     {% include "profittracker/partials/form_field.html" with field=form.listing_url wide=True %}
                                     {% include "profittracker/partials/form_field.html" with field=form.buyer_country %}
                                 </div>

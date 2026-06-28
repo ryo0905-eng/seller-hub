@@ -212,6 +212,28 @@ class ProductCalculationTests(TestCase):
         self.assertEqual(product.profit_gap_jpy, 3941)
         self.assertEqual(product.roi, Decimal("82.3"))
 
+    def test_actual_entry_completion_tracks_missing_fields(self):
+        user = get_user_model().objects.create_user(username="actual-entry-seller", password="pass")
+        product = Product.objects.create(
+            owner=user,
+            title="Missing Actual Entry",
+            purchase_price_jpy=10000,
+            expected_sale_price_usd=Decimal("150.00"),
+            shipping_cost_jpy=2500,
+            exchange_rate=Decimal("150.00"),
+            status=Product.Status.SOLD,
+            sold_date=date(2026, 6, 15),
+            actual_sale_price_usd=Decimal("180.00"),
+            actual_exchange_rate=Decimal("152.00"),
+        )
+
+        self.assertFalse(product.actual_entry_complete)
+        self.assertEqual(product.actual_entry_missing_labels, ["売れたチャネル", "実送料"])
+
+        product.actual_sales_channel = Product.SalesChannel.MERCARI
+        product.actual_shipping_cost_jpy = 2800
+        self.assertTrue(product.actual_entry_complete)
+
 
 class ProductViewTests(TestCase):
     def test_login_required_for_product_list(self):
@@ -657,6 +679,30 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "Detail Item")
         self.assertContains(response, "基本情報")
         self.assertContains(response, "削除")
+
+    def test_product_update_shows_actual_entry_completion(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        product = Product.objects.create(
+            owner=user,
+            title="Actual Entry Item",
+            purchase_price_jpy=1000,
+            expected_sale_price_usd=Decimal("20.00"),
+            shipping_cost_jpy=500,
+            exchange_rate=Decimal("150.00"),
+            status=Product.Status.SOLD,
+            sold_date=date(2026, 6, 20),
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("product_update", args=[product.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "実績入力")
+        self.assertContains(response, "未完了")
+        self.assertContains(response, "不足:")
+        self.assertContains(response, "実売価格")
+        self.assertContains(response, "実送料")
+        self.assertContains(response, "売却日を入力すると、ステータスは自動で売却済みに変わります。")
 
     def test_product_delete_confirmation_renders_before_delete(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")
