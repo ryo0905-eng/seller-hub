@@ -4,12 +4,17 @@
 
 ## ローカル起動
 
+uvをインストールしてから起動してください。
+
 ```bash
-python -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python manage.py migrate
-.venv/bin/python manage.py createsuperuser
-.venv/bin/python manage.py runserver
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+```bash
+uv sync
+uv run python manage.py migrate
+uv run python manage.py createsuperuser
+uv run python manage.py runserver
 ```
 
 ブラウザで `http://127.0.0.1:8000/` を開き、作成したユーザーでログインしてください。管理画面は `http://127.0.0.1:8000/admin/` です。
@@ -71,7 +76,7 @@ Renderのコマンド例:
 
 ```text
 Build Command: ./build.sh
-Start Command: gunicorn ebay_profit_tracker.wsgi:application
+Start Command: .venv/bin/gunicorn ebay_profit_tracker.wsgi:application
 ```
 
 Pythonは `.python-version` で `3.12.8` に固定しています。Renderの環境変数で `PYTHON_VERSION=3.12.8` を設定しても同じです。
@@ -79,7 +84,7 @@ Pythonは `.python-version` で `3.12.8` に固定しています。Renderの環
 初回デプロイ後はRender Shellで管理ユーザーを作成してください。
 
 ```bash
-python manage.py createsuperuser
+.venv/bin/python manage.py createsuperuser
 ```
 
 ### Render Shellでのユーザー管理
@@ -87,25 +92,25 @@ python manage.py createsuperuser
 管理ユーザーを追加する場合:
 
 ```bash
-python manage.py createsuperuser
+.venv/bin/python manage.py createsuperuser
 ```
 
 既存ユーザーのパスワードを変更する場合:
 
 ```bash
-python manage.py changepassword <username>
+.venv/bin/python manage.py changepassword <username>
 ```
 
 例:
 
 ```bash
-python manage.py changepassword admin
+.venv/bin/python manage.py changepassword admin
 ```
 
 ユーザー一覧を確認する場合:
 
 ```bash
-python manage.py shell
+.venv/bin/python manage.py shell
 ```
 
 ```python
@@ -126,7 +131,7 @@ exit()
 PostgreSQLを使っているか確認する場合:
 
 ```bash
-python manage.py shell
+.venv/bin/python manage.py shell
 ```
 
 ```python

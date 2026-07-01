@@ -1,1 +1,1 @@
-web: gunicorn ebay_profit_tracker.wsgi:application
+web: .venv/bin/gunicorn ebay_profit_tracker.wsgi:application

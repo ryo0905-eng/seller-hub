@@ -20,7 +20,7 @@ The app started as an eBay profit tracker, but it should stay channel-flexible:
 - Static files: WhiteNoise
 - Production server: Gunicorn
 
-Render deploys from GitHub. `build.sh` installs dependencies, runs `collectstatic`, and applies migrations.
+Render deploys from GitHub. `build.sh` installs dependencies with uv, runs `collectstatic`, and applies migrations.
 
 ## Core Product Rules
 
@@ -78,23 +78,23 @@ The board should stay scannable on desktop and mobile. Prefer fewer, clearer car
 Run these before committing meaningful changes:
 
 ```bash
-.venv/bin/python manage.py check
-.venv/bin/python manage.py test
-DEBUG=0 .venv/bin/python manage.py collectstatic --noinput
+uv run python manage.py check
+uv run python manage.py test
+DEBUG=0 uv run python manage.py collectstatic --noinput
 ```
 
 After model changes:
 
 ```bash
-.venv/bin/python manage.py makemigrations
-.venv/bin/python manage.py migrate
-.venv/bin/python manage.py makemigrations --check --dry-run
+uv run python manage.py makemigrations
+uv run python manage.py migrate
+uv run python manage.py makemigrations --check --dry-run
 ```
 
 Local server:
 
 ```bash
-.venv/bin/python manage.py runserver
+uv run python manage.py runserver
 ```
 
 ## Git / Deploy

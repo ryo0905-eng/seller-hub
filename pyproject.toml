@@ -1,0 +1,16 @@
+[project]
+name = "seller-hub"
+version = "0.1.0"
+description = "Django web app for Japanese resale sellers."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "Django==5.0.6",
+    "dj-database-url==2.2.0",
+    "gunicorn==22.0.0",
+    "psycopg[binary]==3.2.13",
+    "whitenoise==6.7.0",
+]
+
+[tool.uv]
+package = false
