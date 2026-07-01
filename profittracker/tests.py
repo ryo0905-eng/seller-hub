@@ -404,9 +404,9 @@ class ProductViewTests(TestCase):
             purchase_price_jpy=4100,
             purchase_shipping_jpy=1000,
             other_cost_jpy=1000,
-            expected_sale_price_jpy=10000,
+            expected_sale_price_usd=Decimal("100.00"),
             shipping_cost_jpy=2000,
-            exchange_rate=Decimal("1.00"),
+            exchange_rate=Decimal("150.00"),
             ebay_fee_rate=Decimal("15.00"),
             status=Product.Status.SOLD,
             sold_date=date(2026, 6, 20),
@@ -423,6 +423,7 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "Table View Bag")
         self.assertContains(response, "総コスト")
         self.assertContains(response, "想定利益")
+        self.assertContains(response, "$63.53")
         self.assertContains(response, "メルカリ")
         self.assertContains(response, '<input type="hidden" name="view" value="table">', html=True)
         self.assertContains(response, "view=table")

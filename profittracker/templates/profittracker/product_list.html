@@ -224,7 +224,14 @@
                                     <strong>{{ product.sale_price_jpy|floatformat:0 }}円</strong>
                                     <small>{% if product.expected_sale_price_usd != None %}${{ product.expected_sale_price_usd }}{% else %}JPY{% endif %}</small>
                                 </td>
-                                <td class="num-col">{% if pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円{% else %}-{% endif %}</td>
+                                <td class="num-col">
+                                    {% if pricing.breakeven_jpy != None %}
+                                        <strong>{{ pricing.breakeven_jpy|floatformat:0 }}円</strong>
+                                        <small>{% if pricing.breakeven_usd != None %}${{ pricing.breakeven_usd }}{% else %}JPY{% endif %}</small>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
                                 <td class="num-col {% if product.expected_profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
                                     {% if product.expected_profit_jpy > 0 %}+{% endif %}{{ product.expected_profit_jpy|floatformat:0 }}円
                                 </td>
