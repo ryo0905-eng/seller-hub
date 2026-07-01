@@ -826,6 +826,11 @@ main.container {
     background: #fff;
 }
 
+.listing-section {
+    background: #f8fbff;
+    border-color: #dce8f6;
+}
+
 .actual-section {
     background: #f7fbf8;
     border-color: #dbeee5;
