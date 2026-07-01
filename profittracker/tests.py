@@ -426,7 +426,45 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "メルカリ")
         self.assertContains(response, '<input type="hidden" name="view" value="table">', html=True)
         self.assertContains(response, "view=table")
+        self.assertContains(response, "sort=title_asc")
         self.assertNotContains(response, "pricing-board vstack")
+
+    def test_product_list_table_headers_sort_ascending_and_descending(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        Product.objects.create(
+            owner=user,
+            title="Cheap Item",
+            purchase_price_jpy=3000,
+            expected_sale_price_jpy=10000,
+            shipping_cost_jpy=2000,
+            exchange_rate=Decimal("1.00"),
+            status=Product.Status.LISTED,
+        )
+        Product.objects.create(
+            owner=user,
+            title="Expensive Item",
+            purchase_price_jpy=9000,
+            expected_sale_price_jpy=20000,
+            shipping_cost_jpy=2500,
+            exchange_rate=Decimal("1.00"),
+            status=Product.Status.LISTED,
+        )
+        self.client.force_login(user)
+
+        ascending_response = self.client.get(reverse("product_list"), {"view": "table", "sort": "purchase_asc"})
+        descending_response = self.client.get(reverse("product_list"), {"view": "table", "sort": "purchase_desc"})
+
+        self.assertEqual(ascending_response.status_code, 200)
+        ascending_content = ascending_response.content.decode()
+        self.assertLess(ascending_content.index("Cheap Item"), ascending_content.index("Expensive Item"))
+        self.assertContains(ascending_response, "sort=purchase_desc")
+        self.assertContains(ascending_response, "仕入れ<span>↑</span>", html=True)
+
+        self.assertEqual(descending_response.status_code, 200)
+        descending_content = descending_response.content.decode()
+        self.assertLess(descending_content.index("Expensive Item"), descending_content.index("Cheap Item"))
+        self.assertContains(descending_response, "sort=purchase_asc")
+        self.assertContains(descending_response, "仕入れ<span>↓</span>", html=True)
 
     def test_product_list_search_filters_products(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")

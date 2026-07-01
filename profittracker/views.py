@@ -65,6 +65,19 @@ class ProductListView(OwnerQuerysetMixin, ListView):
     context_object_name = "products"
     default_visible_statuses = (Product.Status.PURCHASED, Product.Status.LISTED)
     visible_modes = {"cards", "table"}
+    sort_columns = {
+        "title": {"label": "商品", "default_direction": "asc"},
+        "status": {"label": "状態", "default_direction": "asc"},
+        "age": {"label": "在庫", "default_direction": "asc"},
+        "purchase": {"label": "仕入れ", "default_direction": "asc"},
+        "total_cost": {"label": "総コスト", "default_direction": "asc"},
+        "sale": {"label": "想定売価", "default_direction": "asc"},
+        "breakeven": {"label": "黒字ライン", "default_direction": "asc"},
+        "expected_profit": {"label": "想定利益", "default_direction": "asc"},
+        "profit_rate": {"label": "利益率", "default_direction": "asc"},
+        "roi": {"label": "ROI", "default_direction": "asc"},
+        "actual_profit": {"label": "実績", "default_direction": "asc"},
+    }
 
     @staticmethod
     def yen(value):
@@ -187,8 +200,49 @@ class ProductListView(OwnerQuerysetMixin, ListView):
             )
         return steps
 
+    def total_cost_jpy(self, product):
+        return product.purchase_price_jpy + product.purchase_shipping_jpy + product.other_cost_jpy + product.shipping_cost_jpy
+
+    def breakeven_jpy(self, product):
+        fee_multiplier = Decimal("1") - product.ebay_fee_rate / Decimal("100")
+        if fee_multiplier <= 0:
+            return None
+        return self.yen(Decimal(self.total_cost_jpy(product)) / fee_multiplier)
+
+    def sort_value(self, product, column):
+        if column == "title":
+            return (product.title or "").casefold()
+        if column == "status":
+            statuses = [value for value, _label in Product.Status.choices]
+            return statuses.index(product.status)
+        if column == "age":
+            return product.inventory_age_days
+        if column == "purchase":
+            return product.purchase_price_jpy
+        if column == "total_cost":
+            return self.total_cost_jpy(product)
+        if column == "sale":
+            return product.sale_price_jpy
+        if column == "breakeven":
+            return self.breakeven_jpy(product)
+        if column == "expected_profit":
+            return product.expected_profit_jpy
+        if column == "profit_rate":
+            return product.profit_rate
+        if column == "roi":
+            return product.roi
+        if column == "actual_profit":
+            return product.actual_profit_jpy
+        return product.updated_at
+
     def sort_products(self, products):
         sort = self.request.GET.get("sort", "updated")
+        if "_" in sort:
+            column, direction = sort.rsplit("_", 1)
+            if column in self.sort_columns and direction in {"asc", "desc"}:
+                present_values = [product for product in products if self.sort_value(product, column) is not None]
+                missing_values = [product for product in products if self.sort_value(product, column) is None]
+                return sorted(present_values, key=lambda product: self.sort_value(product, column), reverse=direction == "desc") + missing_values
         if sort == "sku_asc":
             return sorted(products, key=lambda product: (not product.sku, (product.sku or "").casefold()))
         if sort == "age_desc":
@@ -215,6 +269,33 @@ class ProductListView(OwnerQuerysetMixin, ListView):
             params["view"] = mode
         return params.urlencode()
 
+    def active_table_sort(self):
+        sort = self.request.GET.get("sort", "updated")
+        if "_" not in sort:
+            return None, None
+        column, direction = sort.rsplit("_", 1)
+        if column in self.sort_columns and direction in {"asc", "desc"}:
+            return column, direction
+        return None, None
+
+    def table_sort_links(self):
+        active_column, active_direction = self.active_table_sort()
+        links = {}
+        for column, options in self.sort_columns.items():
+            next_direction = options["default_direction"]
+            if column == active_column and active_direction == "asc":
+                next_direction = "desc"
+            params = self.request.GET.copy()
+            params["view"] = "table"
+            params["sort"] = f"{column}_{next_direction}"
+            links[column] = {
+                "label": options["label"],
+                "url": params.urlencode(),
+                "active": column == active_column,
+                "direction": active_direction if column == active_column else "",
+            }
+        return links
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         seller_settings = SellerSettings.get_for_user(self.request.user)
@@ -238,6 +319,7 @@ class ProductListView(OwnerQuerysetMixin, ListView):
         context["current_view"] = self.current_view_mode()
         context["card_view_querystring"] = self.querystring_for_view("cards")
         context["table_view_querystring"] = self.querystring_for_view("table")
+        context["table_sort_links"] = self.table_sort_links()
         context["review_count"] = sum(1 for card in product_cards if card["pricing"]["decision"]["class"] in {"danger", "warning"})
         context["total_profit"] = sum(product.expected_profit_jpy for product in products)
         context["total_actual_profit"] = sum(product.actual_profit_jpy for product in sold_products)

@@ -634,6 +634,30 @@ main.container {
     z-index: 1;
 }
 
+.table-sort-link {
+    align-items: center;
+    color: inherit;
+    display: inline-flex;
+    gap: 4px;
+    min-height: 24px;
+    text-decoration: none;
+    width: 100%;
+}
+
+.table-sort-link:hover,
+.table-sort-link:focus,
+.table-sort-link.active {
+    color: var(--app-text);
+    text-decoration: none;
+}
+
+.table-sort-link span {
+    color: var(--app-blue);
+    font-size: 0.8rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
 .inventory-table td {
     border-bottom: 1px solid #eef1f5;
     font-size: 0.86rem;

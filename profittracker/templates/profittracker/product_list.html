@@ -102,17 +102,83 @@
             <table class="inventory-table">
                 <thead>
                     <tr>
-                        <th class="item-col">商品</th>
-                        <th>状態</th>
-                        <th class="num-col">在庫</th>
-                        <th class="num-col">仕入れ</th>
-                        <th class="num-col">総コスト</th>
-                        <th class="num-col">想定売価</th>
-                        <th class="num-col">黒字ライン</th>
-                        <th class="num-col">想定利益</th>
-                        <th class="num-col">利益率</th>
-                        <th class="num-col">ROI</th>
-                        <th class="actual-col">実績</th>
+                        {% with sort=table_sort_links.title %}
+                            <th class="item-col">
+                                <a class="table-sort-link {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    商品{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
+                        {% with sort=table_sort_links.status %}
+                            <th>
+                                <a class="table-sort-link {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    状態{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
+                        {% with sort=table_sort_links.age %}
+                            <th class="num-col">
+                                <a class="table-sort-link justify-content-end {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    在庫{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
+                        {% with sort=table_sort_links.purchase %}
+                            <th class="num-col">
+                                <a class="table-sort-link justify-content-end {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    仕入れ{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
+                        {% with sort=table_sort_links.total_cost %}
+                            <th class="num-col">
+                                <a class="table-sort-link justify-content-end {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    総コスト{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
+                        {% with sort=table_sort_links.sale %}
+                            <th class="num-col">
+                                <a class="table-sort-link justify-content-end {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    想定売価{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
+                        {% with sort=table_sort_links.breakeven %}
+                            <th class="num-col">
+                                <a class="table-sort-link justify-content-end {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    黒字ライン{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
+                        {% with sort=table_sort_links.expected_profit %}
+                            <th class="num-col">
+                                <a class="table-sort-link justify-content-end {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    想定利益{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
+                        {% with sort=table_sort_links.profit_rate %}
+                            <th class="num-col">
+                                <a class="table-sort-link justify-content-end {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    利益率{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
+                        {% with sort=table_sort_links.roi %}
+                            <th class="num-col">
+                                <a class="table-sort-link justify-content-end {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    ROI{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
+                        {% with sort=table_sort_links.actual_profit %}
+                            <th class="actual-col">
+                                <a class="table-sort-link {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
+                                    実績{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
+                                </a>
+                            </th>
+                        {% endwith %}
                         <th class="actions-col">操作</th>
                     </tr>
                 </thead>
