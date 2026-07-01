@@ -976,6 +976,11 @@ main.container {
     background: #fff;
 }
 
+.purchase-section {
+    background: #fffaf0;
+    border-color: #f4df9e;
+}
+
 .listing-section {
     background: #f8fbff;
     border-color: #dce8f6;

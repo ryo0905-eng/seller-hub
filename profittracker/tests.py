@@ -963,6 +963,21 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "実送料")
         self.assertContains(response, "売却日を入力すると、ステータスは自動で売却済みに変わります。")
 
+    def test_product_form_shows_purchase_details_before_listing_and_actual_sections(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("product_create"))
+
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        purchase_heading = '<h2 class="h5 fw-bold mb-1">仕入れ・商品詳細</h2>'
+        listing_heading = '<h2 class="h5 fw-bold mb-1">出品情報</h2>'
+        actual_heading = '<h2 class="h5 fw-bold mb-1">実績入力</h2>'
+        self.assertLess(content.index(purchase_heading), content.index(listing_heading))
+        self.assertLess(content.index(purchase_heading), content.index(actual_heading))
+        self.assertNotContains(response, "productDetailAccordion")
+
     def test_product_delete_confirmation_renders_before_delete(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")
         product = Product.objects.create(
