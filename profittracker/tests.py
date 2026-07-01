@@ -393,6 +393,41 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "編集・実績入力")
         self.assertNotContains(response, "実売USD")
 
+    def test_product_list_can_render_table_view(self):
+        user = get_user_model().objects.create_user(username="seller", password="pass")
+        Product.objects.create(
+            owner=user,
+            sku="P001",
+            title="Table View Bag",
+            brand="Porter",
+            category="Bag",
+            purchase_price_jpy=4100,
+            purchase_shipping_jpy=1000,
+            other_cost_jpy=1000,
+            expected_sale_price_jpy=10000,
+            shipping_cost_jpy=2000,
+            exchange_rate=Decimal("1.00"),
+            ebay_fee_rate=Decimal("15.00"),
+            status=Product.Status.SOLD,
+            sold_date=date(2026, 6, 20),
+            actual_sales_channel=Product.SalesChannel.MERCARI,
+            actual_sale_price_jpy_manual=12000,
+            actual_shipping_cost_jpy=2000,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("product_list"), {"view": "table", "q": "bag", "status": Product.Status.SOLD})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "inventory-table")
+        self.assertContains(response, "Table View Bag")
+        self.assertContains(response, "総コスト")
+        self.assertContains(response, "想定利益")
+        self.assertContains(response, "メルカリ")
+        self.assertContains(response, '<input type="hidden" name="view" value="table">', html=True)
+        self.assertContains(response, "view=table")
+        self.assertNotContains(response, "pricing-board vstack")
+
     def test_product_list_search_filters_products(self):
         user = get_user_model().objects.create_user(username="seller", password="pass")
         Product.objects.create(

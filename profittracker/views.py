@@ -64,6 +64,7 @@ class ProductListView(OwnerQuerysetMixin, ListView):
     template_name = "profittracker/product_list.html"
     context_object_name = "products"
     default_visible_statuses = (Product.Status.PURCHASED, Product.Status.LISTED)
+    visible_modes = {"cards", "table"}
 
     @staticmethod
     def yen(value):
@@ -200,6 +201,20 @@ class ProductListView(OwnerQuerysetMixin, ListView):
             return sorted(products, key=lambda product: product.roi)
         return products
 
+    def current_view_mode(self):
+        mode = self.request.GET.get("view", "cards")
+        if mode not in self.visible_modes:
+            return "cards"
+        return mode
+
+    def querystring_for_view(self, mode):
+        params = self.request.GET.copy()
+        if mode == "cards":
+            params.pop("view", None)
+        else:
+            params["view"] = mode
+        return params.urlencode()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         seller_settings = SellerSettings.get_for_user(self.request.user)
@@ -220,6 +235,9 @@ class ProductListView(OwnerQuerysetMixin, ListView):
         context["current_statuses"] = self.selected_statuses()
         context["current_query"] = self.request.GET.get("q", "").strip()
         context["current_sort"] = self.request.GET.get("sort", "updated")
+        context["current_view"] = self.current_view_mode()
+        context["card_view_querystring"] = self.querystring_for_view("cards")
+        context["table_view_querystring"] = self.querystring_for_view("table")
         context["review_count"] = sum(1 for card in product_cards if card["pricing"]["decision"]["class"] in {"danger", "warning"})
         context["total_profit"] = sum(product.expected_profit_jpy for product in products)
         context["total_actual_profit"] = sum(product.actual_profit_jpy for product in sold_products)

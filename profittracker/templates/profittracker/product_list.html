@@ -47,6 +47,9 @@
 </div>
 
 <form method="get" class="filter-bar row g-2 align-items-end mb-3">
+    {% if current_view == "table" %}
+        <input type="hidden" name="view" value="table">
+    {% endif %}
     <div class="col-12 col-lg-4">
         <label class="form-label" for="q">検索</label>
         <input class="form-control" id="q" name="q" type="search" value="{{ current_query }}" placeholder="商品名・SKU・ブランド・仕入先">
@@ -79,7 +82,111 @@
     </div>
 </form>
 
+<div class="view-switcher d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
+    <div class="text-muted small">
+        {% if current_view == "table" %}
+            表表示: 数値を横並びで比較できます。
+        {% else %}
+            カード表示: 価格改定の判断に必要な指標を大きく確認できます。
+        {% endif %}
+    </div>
+    <div class="btn-group view-toggle" role="group" aria-label="表示切り替え">
+        <a class="btn btn-sm {% if current_view == 'cards' %}btn-dark{% else %}btn-outline-secondary{% endif %}" href="{% url 'product_list' %}{% if card_view_querystring %}?{{ card_view_querystring }}{% endif %}">カード</a>
+        <a class="btn btn-sm {% if current_view == 'table' %}btn-dark{% else %}btn-outline-secondary{% endif %}" href="{% url 'product_list' %}{% if table_view_querystring %}?{{ table_view_querystring }}{% endif %}">表</a>
+    </div>
+</div>
+
 {% if product_cards %}
+    {% if current_view == "table" %}
+        <div class="inventory-table-wrap">
+            <table class="inventory-table">
+                <thead>
+                    <tr>
+                        <th class="item-col">商品</th>
+                        <th>状態</th>
+                        <th class="num-col">在庫</th>
+                        <th class="num-col">仕入れ</th>
+                        <th class="num-col">総コスト</th>
+                        <th class="num-col">想定売価</th>
+                        <th class="num-col">黒字ライン</th>
+                        <th class="num-col">想定利益</th>
+                        <th class="num-col">利益率</th>
+                        <th class="num-col">ROI</th>
+                        <th class="actual-col">実績</th>
+                        <th class="actions-col">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for card in product_cards %}
+                        {% with product=card.product pricing=card.pricing decision=card.pricing.decision %}
+                            <tr class="inventory-row decision-{{ decision.class }}">
+                                <td class="item-col">
+                                    <div class="table-product-cell">
+                                        {% if product.image_url %}
+                                            <img class="product-thumb small" src="{{ product.image_url }}" alt="{{ product.title }}">
+                                        {% else %}
+                                            <div class="product-thumb small placeholder">No</div>
+                                        {% endif %}
+                                        <div class="min-w-0">
+                                            <a class="fw-bold product-title-link d-block text-truncate" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
+                                            <div class="text-muted small text-truncate">
+                                                {% if product.sku %}{{ product.sku }} / {% endif %}
+                                                {% if product.brand %}{{ product.brand }} / {% endif %}
+                                                {% if product.category %}{{ product.category }}{% endif %}
+                                                {% if product.purchase_url %}
+                                                    {% if product.category or product.brand or product.sku %} / {% endif %}<a class="source-link" href="{{ product.purchase_url }}" target="_blank" rel="noopener">仕入れ元</a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-status-stack">
+                                        <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
+                                        {% if product.status != "sold" %}
+                                            <span class="decision-pill decision-pill-{{ decision.class }}">{{ decision.label }}</span>
+                                        {% endif %}
+                                        {% if product.actual_sales_channel %}
+                                            <span class="badge channel-badge channel-{{ product.actual_sales_channel }}">{{ product.get_actual_sales_channel_display }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="num-col">{% if product.inventory_age_days != None %}{{ product.inventory_age_days }}日{% else %}-{% endif %}</td>
+                                <td class="num-col">{{ product.purchase_price_jpy|floatformat:0 }}円</td>
+                                <td class="num-col">{{ pricing.total_cost_jpy|floatformat:0 }}円</td>
+                                <td class="num-col">
+                                    <strong>{{ product.sale_price_jpy|floatformat:0 }}円</strong>
+                                    <small>{% if product.expected_sale_price_usd != None %}${{ product.expected_sale_price_usd }}{% else %}JPY{% endif %}</small>
+                                </td>
+                                <td class="num-col">{% if pricing.breakeven_jpy != None %}{{ pricing.breakeven_jpy|floatformat:0 }}円{% else %}-{% endif %}</td>
+                                <td class="num-col {% if product.expected_profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
+                                    {% if product.expected_profit_jpy > 0 %}+{% endif %}{{ product.expected_profit_jpy|floatformat:0 }}円
+                                </td>
+                                <td class="num-col {% if product.profit_rate < 0 %}text-danger{% else %}text-success{% endif %}">{{ product.profit_rate }}%</td>
+                                <td class="num-col {% if product.roi < 0 %}text-danger{% else %}text-success{% endif %}">{{ product.roi }}%</td>
+                                <td class="actual-col">
+                                    {% if product.actual_profit_jpy != None %}
+                                        <strong class="{% if product.actual_profit_jpy < 0 %}text-danger{% else %}text-success{% endif %}">
+                                            {% if product.actual_profit_jpy > 0 %}+{% endif %}{{ product.actual_profit_jpy|floatformat:0 }}円
+                                        </strong>
+                                        <small>{% if product.actual_sale_price_jpy != None %}実売 {{ product.actual_sale_price_jpy|floatformat:0 }}円{% endif %}</small>
+                                    {% else %}
+                                        <span class="text-muted">未入力</span>
+                                    {% endif %}
+                                </td>
+                                <td class="actions-col">
+                                    <div class="table-actions">
+                                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'product_detail' product.pk %}">詳細</a>
+                                        <a class="btn btn-sm btn-outline-dark" href="{% url 'product_update' product.pk %}">編集</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
     <div class="pricing-board vstack gap-3">
         {% for card in product_cards %}
             {% with product=card.product pricing=card.pricing decision=card.pricing.decision %}
@@ -160,6 +267,7 @@
             {% endwith %}
         {% endfor %}
     </div>
+    {% endif %}
 {% else %}
     <div class="empty-state">
         <h2 class="h4 fw-bold">対象の商品がありません</h2>
