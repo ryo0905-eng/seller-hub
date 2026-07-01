@@ -617,7 +617,8 @@ main.container {
 .inventory-table {
     border-collapse: separate;
     border-spacing: 0;
-    min-width: 1160px;
+    min-width: 1320px;
+    table-layout: fixed;
     width: 100%;
 }
 
@@ -631,7 +632,7 @@ main.container {
     position: sticky;
     top: 0;
     white-space: nowrap;
-    z-index: 1;
+    z-index: 5;
 }
 
 .table-sort-link {
@@ -691,22 +692,26 @@ main.container {
 }
 
 .inventory-table .item-col {
-    min-width: 300px;
-    width: 30%;
+    width: 360px;
+}
+
+.inventory-table .status-col {
+    width: 108px;
 }
 
 .inventory-table .num-col {
     text-align: right;
     white-space: nowrap;
+    width: 96px;
 }
 
 .inventory-table .actual-col {
-    min-width: 118px;
+    width: 112px;
     white-space: nowrap;
 }
 
 .inventory-table .actions-col {
-    min-width: 126px;
+    width: 112px;
 }
 
 .inventory-table small {
@@ -722,6 +727,20 @@ main.container {
     display: flex;
     gap: 10px;
     min-width: 0;
+}
+
+.table-product-cell .product-thumb.small {
+    height: 40px;
+    width: 40px;
+}
+
+.table-product-title {
+    display: -webkit-box;
+    line-height: 1.22;
+    max-height: 2.44em;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 .table-status-stack {

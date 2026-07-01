@@ -256,14 +256,14 @@ class ProductListView(OwnerQuerysetMixin, ListView):
         return products
 
     def current_view_mode(self):
-        mode = self.request.GET.get("view", "cards")
+        mode = self.request.GET.get("view", "table")
         if mode not in self.visible_modes:
-            return "cards"
+            return "table"
         return mode
 
     def querystring_for_view(self, mode):
         params = self.request.GET.copy()
-        if mode == "cards":
+        if mode == "table":
             params.pop("view", None)
         else:
             params["view"] = mode

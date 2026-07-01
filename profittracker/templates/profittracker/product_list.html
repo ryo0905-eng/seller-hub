@@ -47,8 +47,8 @@
 </div>
 
 <form method="get" class="filter-bar row g-2 align-items-end mb-3">
-    {% if current_view == "table" %}
-        <input type="hidden" name="view" value="table">
+    {% if current_view == "cards" %}
+        <input type="hidden" name="view" value="cards">
     {% endif %}
     <div class="col-12 col-lg-4">
         <label class="form-label" for="q">検索</label>
@@ -110,7 +110,7 @@
                             </th>
                         {% endwith %}
                         {% with sort=table_sort_links.status %}
-                            <th>
+                            <th class="status-col">
                                 <a class="table-sort-link {% if sort.active %}active{% endif %}" href="{% url 'product_list' %}?{{ sort.url }}">
                                     状態{% if sort.active %}<span>{% if sort.direction == "asc" %}↑{% else %}↓{% endif %}</span>{% endif %}
                                 </a>
@@ -194,7 +194,7 @@
                                             <div class="product-thumb small placeholder">No</div>
                                         {% endif %}
                                         <div class="min-w-0">
-                                            <a class="fw-bold product-title-link d-block text-truncate" href="{% url 'product_detail' product.pk %}">{{ product.title }}</a>
+                                            <a class="fw-bold product-title-link table-product-title" href="{% url 'product_detail' product.pk %}" title="{{ product.title }}">{{ product.title }}</a>
                                             <div class="text-muted small text-truncate">
                                                 {% if product.sku %}{{ product.sku }} / {% endif %}
                                                 {% if product.brand %}{{ product.brand }} / {% endif %}
@@ -206,7 +206,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>
+                                <td class="status-col">
                                     <div class="table-status-stack">
                                         <span class="badge status-badge status-{{ product.status }}">{{ product.get_status_display }}</span>
                                         {% if product.status != "sold" %}

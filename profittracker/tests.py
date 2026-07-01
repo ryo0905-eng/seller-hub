@@ -370,12 +370,13 @@ class ProductViewTests(TestCase):
         )
         self.client.force_login(user)
 
-        response = self.client.get(reverse("product_list"))
+        response = self.client.get(reverse("product_list"), {"view": "cards"})
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Camera Lens")
         self.assertContains(response, "出品中")
         self.assertContains(response, "status-filter-chip")
+        self.assertContains(response, '<input type="hidden" name="view" value="cards">', html=True)
         self.assertContains(response, "product-state-line")
         self.assertContains(response, "status-progress")
         self.assertContains(response, "status-step-current status-step-listed")
@@ -416,7 +417,7 @@ class ProductViewTests(TestCase):
         )
         self.client.force_login(user)
 
-        response = self.client.get(reverse("product_list"), {"view": "table", "q": "bag", "status": Product.Status.SOLD})
+        response = self.client.get(reverse("product_list"), {"q": "bag", "status": Product.Status.SOLD})
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "inventory-table")
@@ -425,7 +426,7 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "想定利益")
         self.assertContains(response, "$63.53")
         self.assertContains(response, "メルカリ")
-        self.assertContains(response, '<input type="hidden" name="view" value="table">', html=True)
+        self.assertNotContains(response, '<input type="hidden" name="view" value="table">', html=True)
         self.assertContains(response, "view=table")
         self.assertContains(response, "sort=title_asc")
         self.assertNotContains(response, "pricing-board vstack")
