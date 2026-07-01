@@ -73,6 +73,23 @@ Avoid adding too much secondary data back into the card. Put detailed data on th
 
 The board should stay scannable on desktop and mobile. Prefer fewer, clearer cards over dense table-like layouts.
 
+## MCP Usage
+
+Context7:
+
+- Use Context7 MCP for current or version-specific documentation about external libraries, frameworks, and services.
+- Good targets include Django, Bootstrap, WhiteNoise, Render, uv, Gunicorn, and PostgreSQL behavior.
+- Do not use Context7 for Seller Hub product rules, local codebase structure, or business logic decisions; read this repository and AGENTS.md instead.
+- Treat Context7 results as supporting documentation. Verify important behavior with local code and tests.
+- Context7 is an external service, so do not send secrets, private data, production credentials, or sensitive business data in documentation queries.
+
+Serena:
+
+- Use Serena MCP for semantic codebase navigation, symbol lookup, and focused edits across the local repository.
+- Prefer Serena when tracing model/form/view relationships, finding references, or planning refactors that cross multiple files.
+- Do not use Serena as a replacement for reading AGENTS.md, running tests, or checking the actual file contents before editing.
+- Keep Serena-assisted changes small and aligned with the existing Django patterns in this project.
+
 ## Common Commands
 
 Run these before committing meaningful changes:
