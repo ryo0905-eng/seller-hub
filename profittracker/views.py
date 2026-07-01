@@ -753,8 +753,11 @@ class ProductCsvImportView(LoginRequiredMixin, FormView):
                     if field in model_fields and field not in {"id", "owner", "created_at", "updated_at"}
                 }
                 values = {key: value for key, value in values.items() if value is not None}
-                if values.get("status") == "shipped" or values.get("sold_date"):
-                    values["status"] = Product.Status.SOLD
+                values["status"] = Product.status_from_dates(
+                    purchase_date=values.get("purchase_date"),
+                    listed_date=values.get("listed_date"),
+                    sold_date=values.get("sold_date"),
+                )
                 Product.objects.create(owner=self.request.user, **values)
                 imported += 1
             except (IntegrityError, ValueError, InvalidOperation, TypeError) as exc:

@@ -49,7 +49,6 @@
                         {% include "profittracker/partials/form_field.html" with field=form.brand %}
                         {% include "profittracker/partials/form_field.html" with field=form.category %}
                         {% include "profittracker/partials/form_field.html" with field=form.source %}
-                        {% include "profittracker/partials/form_field.html" with field=form.status %}
                         {% include "profittracker/partials/form_field.html" with field=form.purchase_price_jpy %}
                         {% include "profittracker/partials/form_field.html" with field=form.expected_sale_price_usd %}
                         {% include "profittracker/partials/form_field.html" with field=form.expected_sale_price_jpy %}
@@ -66,7 +65,7 @@
                         <div>
                             <div class="eyebrow">Listing work</div>
                             <h2 class="h5 fw-bold mb-1">出品情報</h2>
-                            <p class="text-muted small mb-0">出品したタイミングで、販売ページと出品日を残します。</p>
+                            <p class="text-muted small mb-0">出品日を入力すると、ステータスは自動で出品中に変わります。</p>
                         </div>
                     </div>
                     <div class="row g-3 compact-form-grid">

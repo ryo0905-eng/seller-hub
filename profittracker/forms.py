@@ -36,7 +36,6 @@ class ProductForm(forms.ModelForm):
             "purchase_url",
             "image_url",
             "buyer_country",
-            "status",
             "memo",
         ]
         widgets = {
@@ -129,8 +128,11 @@ class ProductForm(forms.ModelForm):
                 return cleaned_data
             cleaned_data["expected_sale_price_jpy"] = self.yen(usd * exchange_rate)
 
-        if cleaned_data.get("sold_date"):
-            cleaned_data["status"] = Product.Status.SOLD
+        self.instance.status = Product.status_from_dates(
+            purchase_date=cleaned_data.get("purchase_date"),
+            listed_date=cleaned_data.get("listed_date"),
+            sold_date=cleaned_data.get("sold_date"),
+        )
 
         return cleaned_data
 
@@ -139,7 +141,6 @@ class ProductQuickUpdateForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = [
-            "status",
             "actual_sales_channel",
             "actual_sale_price_usd",
             "sold_date",
@@ -159,8 +160,11 @@ class ProductQuickUpdateForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get("sold_date"):
-            cleaned_data["status"] = Product.Status.SOLD
+        self.instance.status = Product.status_from_dates(
+            purchase_date=self.instance.purchase_date,
+            listed_date=self.instance.listed_date,
+            sold_date=cleaned_data.get("sold_date"),
+        )
         return cleaned_data
 
 

@@ -128,6 +128,14 @@ class Product(models.Model):
     def yen(value):
         return int(Decimal(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
+    @classmethod
+    def status_from_dates(cls, purchase_date=None, listed_date=None, sold_date=None):
+        if sold_date:
+            return cls.Status.SOLD
+        if listed_date:
+            return cls.Status.LISTED
+        return cls.Status.PURCHASED
+
     @property
     def sale_price_jpy(self):
         if self.expected_sale_price_jpy is not None:

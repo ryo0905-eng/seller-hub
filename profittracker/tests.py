@@ -233,7 +233,12 @@ class ProductCalculationTests(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.cleaned_data["actual_sales_channel"], Product.SalesChannel.MERCARI)
 
-    def test_product_form_marks_item_sold_when_sold_date_is_entered(self):
+    def test_product_form_excludes_manual_status_field(self):
+        form = ProductForm()
+
+        self.assertNotIn("status", form.fields)
+
+    def test_product_form_sets_status_from_dates(self):
         form = ProductForm(
             data={
                 "title": "Auto Sold Item",
@@ -247,13 +252,34 @@ class ProductCalculationTests(TestCase):
                 "shipping_cost_jpy": "1000",
                 "exchange_rate": "",
                 "ebay_fee_rate": "10.00",
-                "status": Product.Status.LISTED,
                 "sold_date": "2026-06-20",
             }
         )
 
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["status"], Product.Status.SOLD)
+        product = form.save(commit=False)
+        self.assertEqual(product.status, Product.Status.SOLD)
+
+        listed_form = ProductForm(
+            data={
+                "title": "Auto Listed Item",
+                "condition": Product.Condition.USED,
+                "quantity": "1",
+                "purchase_price_jpy": "7000",
+                "purchase_shipping_jpy": "0",
+                "other_cost_jpy": "0",
+                "expected_sale_price_usd": "",
+                "expected_sale_price_jpy": "12000",
+                "shipping_cost_jpy": "1000",
+                "exchange_rate": "",
+                "ebay_fee_rate": "10.00",
+                "listed_date": "2026-06-10",
+            }
+        )
+
+        self.assertTrue(listed_form.is_valid(), listed_form.errors)
+        listed_product = listed_form.save(commit=False)
+        self.assertEqual(listed_product.status, Product.Status.LISTED)
 
     def test_actual_ebay_fee_defaults_to_15_percent_estimate_when_blank(self):
         product = Product(
@@ -897,7 +923,6 @@ class ProductViewTests(TestCase):
         response = self.client.post(
             reverse("product_quick_update", args=[product.pk]),
             {
-                "status": Product.Status.LISTED,
                 "actual_sale_price_usd": "30.00",
                 "sold_date": "2026-06-20",
             },
